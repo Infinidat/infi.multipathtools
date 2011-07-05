@@ -22,6 +22,12 @@ class MockEntryPoint(EntryPoint):
     def start(self):
         self._running = True
 
+    def restart(self):
+        pass
+
+    def reload(self):
+        pass
+
 class CompositeServiceTestCase(unittest.TestCase):
     def setUp(self):
         from . import CompositeEntryPoint
@@ -64,3 +70,35 @@ class CompositeServiceTestCase(unittest.TestCase):
         self.assertIn(component, self.concrete.components.values())
         self.concrete.remove_component(component)
         self.assertNotIn(component, self.concrete.components.values())
+
+class FileTestCase(unittest.TestCase):
+    def setUp(self):
+        from tempfile import mkstemp
+        from os import close
+        fd, self.tempfile = mkstemp()
+        close(fd)
+
+    def test_file_that_does_not_exist(self):
+        from . import File
+        item = File('abracadabra')
+        self.assertFalse(item.is_installed())
+
+    def test_file_that_exists(self):
+        from . import File
+        item = File(self.tempfile)
+        self.assertTrue(item.is_installed())
+        self.assertTrue(item.is_running())
+        item.stop()
+        item.start()
+        item.reload()
+        item.restart()
+
+    def tearDown(self):
+        from os import remove
+        remove(self.tempfile)
+
+class KernelModuleTestCase(unittest.TestCase):
+    pass
+
+class InitServiceTestCase(unittest.TestCase):
+    pass
