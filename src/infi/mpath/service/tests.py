@@ -2,6 +2,8 @@
 import unittest
 import mock
 
+from contextlib import contextmanager, nested
+
 from . import EntryPoint
 
 class MockEntryPoint(EntryPoint):
@@ -98,7 +100,169 @@ class FileTestCase(unittest.TestCase):
         remove(self.tempfile)
 
 class KernelModuleTestCase(unittest.TestCase):
-    pass
+    def setUp(self):
+        if self.should_skip():
+            raise unittest.SkipTest
+
+    def tearDown(self):
+        pass
+
+    def should_skip(self):
+        import platform
+        (system, node, release, version, machine, processor) = platform.uname()
+        return system.lower() != 'linux'
+
+    def test_floppy_module_state(self):
+        from . import KernelModule
+        item = KernelModule('floppy')
+        self.assertTrue(item.is_installed())
+        self.assertTrue(item.is_running())
+
+    def test_floppy_module_start(self):
+        from . import KernelModule
+        item = KernelModule('floppy')
+        if item.is_running():
+            item.stop()
+        item.start()
+        self.assertTrue(item.is_running())
+
+    def test_floppy_module_stop(self):
+        from . import KernelModule
+        item = KernelModule('floppy')
+        if not item.is_running():
+            item.start()
+        item.stop()
+        self.assertFalse(item.is_running())
+
+    def test__module_not_exists(self):
+        from . import KernelModule
+        item = KernelModule('thereisNoSuchModule')
+        self.assertFalse(item.is_installed())
+
+    def _get_module_in_use(self):
+        from os.path import join, sep, exists
+        with open(join(sep, 'proc', 'modules')) as modules:
+            for line in modules.readlines():
+                module_name, _, used_by_counter, _, _, _ = line.split()
+                if used_by_counter:
+                    return module_name
+        return None
+
+    def test__cannot_stop_module(self):
+        from . import KernelModule, ServiceFailedToStop
+        module_in_use = self._get_module_in_use()
+        if module_in_use is None:
+            raise unittest.SkipTest
+        item = KernelModule(module_in_use)
+        self.assertRaises(ServiceFailedToStop, item.stop)
+
+class MockKernelModuleTestCase(KernelModuleTestCase):
+    def setUp(self):
+        KernelModuleTestCase.setUp(self)
+        self._prepare_modules_dep_file()
+
+    def tearDown(self):
+        from os import close, remove
+        fd, filename = self.tempfile
+        fd.close()
+        remove(filename)
+
+    def should_skip(self):
+        return False
+
+    def _prepare_modules_dep_file(self):
+        from os import fdopen
+        from tempfile import mkstemp
+        fd, filename = mkstemp()
+        fd = fdopen(fd, 'w+b')
+        fd.write('/legen/wait/for/it/dary.ko:\n')
+        fd.write('/foo/bar/floppy.ko:\n')
+        fd.write('/abra/kadabra.ko:\n')
+        fd.seek(0)
+        self.tempfile = fd, filename
+
+    def _execute_side_effect(self, return_value):
+        execute = mock.Mock()
+        execute.wait = mock.Mock()
+        execute.get_returncode = mock.Mock()
+        execute.get_returncode.return_value = return_value
+        execute.get_stdout = mock.Mock()
+        execute.get_stdout.return_value = ''
+        execute.get_stderr = mock.Mock()
+        execute.get_stderr.return_value = ''
+
+        def side_effect(*args, **kwargs):
+            return execute
+
+        return side_effect
+
+    @contextmanager
+    def mock_uname(self):
+        with mock.patch("platform.uname") as uname:
+            uname.return_value = ("Linux", "hostname", "2.6.something", "long text", "x64_64", '')
+            yield uname
+
+    @contextmanager
+    def mock_open(self):
+        fd, _ = self.tempfile
+        with mock.patch("__builtin__.open") as _open:
+            _open.return_value = mock.MagicMock(fd)
+            _open.return_value.__enter__.return_value.read.return_value = fd.read()
+            yield _open
+
+    @contextmanager
+    def mock_execute(self, return_value):
+        with mock.patch("infi.execute.execute") as execute:
+            execute.side_effect = self._execute_side_effect(return_value)
+            yield execute
+
+    def test_floppy_module_state(self):
+        with nested(self.mock_uname(), self.mock_execute(0), self.mock_open()) as (_, _, _open):
+            _open.return_value.__enter__.return_value.readlines.return_value = \
+                    ['floppy 1234 0 - Live 0x00', 'ext3 4321 0 - Live 0x00']
+            KernelModuleTestCase.test_floppy_module_state(self)
+            self.assertEquals(_open.return_value.__enter__.return_value.read.call_count, 1)
+
+
+    def test_floppy_module_start(self):
+        with nested(self.mock_uname(), self.mock_execute(0), self.mock_open()) as (_, _, _open):
+            return_values = [['ext3 4321 0 - Live 0x00'],
+                             ['floppy 1234 0 - Live 0x00', 'ext3 4321 0 - Live 0x00']]
+            return_values.reverse()
+
+            def side_effect(*args, **kwargs):
+                return return_values.pop()
+
+            _open.return_value.__enter__.return_value.readlines.side_effect = side_effect
+            KernelModuleTestCase.test_floppy_module_start(self)
+
+    def test_floppy_module_stop(self):
+        with nested(self.mock_uname(), self.mock_execute(0), self.mock_open()) as (_, _, _open):
+            return_values = [['ext3 4321 0 - Live 0x00'],
+                             ['floppy 1234 0 - Live 0x00', 'ext3 4321 0 - Live 0x00']]
+
+            def side_effect(*args, **kwargs):
+                return return_values.pop()
+
+            _open.return_value.__enter__.return_value.readlines.side_effect = side_effect
+            KernelModuleTestCase.test_floppy_module_stop(self)
+
+    def test_module_listing(self):
+        from . import is_module_name_listed_in_dep_file
+        fd, filename = self.tempfile
+        module_name, content = 'floppy', fd.read()
+        self.assertTrue(is_module_name_listed_in_dep_file(module_name, content))
+
+    def test__module_not_exists(self):
+        with nested(self.mock_uname(), self.mock_execute(0), self.mock_open()):
+            KernelModuleTestCase.test__module_not_exists(self)
+
+    def _get_module_in_use(self):
+        return 'floppy'
+
+    def test__cannot_stop_module(self):
+        with nested(self.mock_uname(), self.mock_execute(1), self.mock_open()):
+            KernelModuleTestCase.test__cannot_stop_module(self)
 
 class InitServiceTestCase(unittest.TestCase):
     pass

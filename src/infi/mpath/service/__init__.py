@@ -3,6 +3,9 @@
 class ServiceException(Exception):
     pass
 
+class ServiceFailedToStop(ServiceException):
+    pass
+
 class ServiceFailedToStart(ServiceException):
     pass
 
@@ -30,6 +33,17 @@ class EntryPoint(object):
     def restart(self):
         raise NotImplementedError # pragma: no cover
 
+def is_module_name_listed_in_dep_file(module_name, content):
+    import re
+    regex = re.compile(r'^[A-Za-z0-9-_/]*/%s.ko:\w*$' % module_name, re.MULTILINE)
+    match = regex.search(content)
+    return True if match and match.group() else False
+
+def get_list_of_live_modules():
+    from os.path import join, sep
+    with open(join(sep, 'proc', 'modules')) as modules:
+        return [line.split()[0] for line in modules.readlines()]
+
 class KernelModule(EntryPoint):
     def __init__(self, module_name):
         object.__init__(self)
@@ -41,41 +55,43 @@ class KernelModule(EntryPoint):
         return release
 
     def is_installed(self):
-        import re
-        from os.path import exists, sep, join
+        from os.path import sep, join
         with open(join(sep, 'lib', 'modules', self.get_kernel_release(), 'modules.dep')) as modules_dep:
-            context = modules_dep.read()
-        regex = re.compile('^[a-bA-b_0-9\/]*%s.ko:.*' % self.module_name)
-        match = regex.match(context)
-        return bool(match)
+            content = modules_dep.read()
+        return is_module_name_listed_in_dep_file(self.module_name, content)
 
     def is_running(self):
-        from os.path import exists, sep, join
-        return exists(join(sep, 'sys', 'module', self.module_name))
+        return self.module_name in get_list_of_live_modules()
 
     def _execute(self, command):
         from logging import debug
         from infi.execute import execute
-        from infi.exceptools import chain
         debug('executing %s', command)
         try:
             subprocess = execute(command.split())
         except Exception, exception:
-            # TODO mock this
-            chain(ServiceFailedToStart)
+            from infi.exceptools import chain
+            raise chain(ServiceException)
         debug('waiting for it')
         debug('returncode = %s', subprocess.get_returncode())
         debug('stdout = %s', subprocess.get_stdout())
         debug('stderr = %s', subprocess.get_stderr())
         if subprocess.get_returncode() != 0:
-            # TODO mock this
-            raise ServiceFailedToStart(subprocess.get_stderr())
+            raise ServiceException(subprocess.get_stderr())
 
     def stop(self):
-        self._execute('rmmod %s' % self.module_name)
+        try:
+            self._execute('rmmod %s' % self.module_name)
+        except ServiceException:
+            from infi.exceptools import chain
+            raise chain(ServiceFailedToStop)
 
     def start(self):
-        self._execute('modprobe %s' % self.module_name)
+        try:
+            self._execute('modprobe %s' % self.module_name)
+        except ServiceException:
+            from infi.exceptools import chain
+            raise chain(ServiceFailedToStart)
 
     def reload(self):
         pass
