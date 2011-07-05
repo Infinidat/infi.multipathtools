@@ -30,7 +30,7 @@ class MockEntryPoint(EntryPoint):
     def reload(self):
         pass
 
-class CompositeServiceTestCase(unittest.TestCase):
+class MockCompositeServiceTestCase(unittest.TestCase):
     def setUp(self):
         from . import CompositeEntryPoint
         self.concrete = CompositeEntryPoint()
@@ -266,3 +266,7 @@ class MockKernelModuleTestCase(KernelModuleTestCase):
 
 class InitServiceTestCase(unittest.TestCase):
     pass
+
+class CompositeServiceTestCase(unittest.TestCase):
+    def test_get_composite(self):
+        from . import get_multipath_composite

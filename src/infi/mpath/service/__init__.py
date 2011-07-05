@@ -44,6 +44,22 @@ def get_list_of_live_modules():
     with open(join(sep, 'proc', 'modules')) as modules:
         return [line.split()[0] for line in modules.readlines()]
 
+def execute(command):
+    from logging import debug
+    from infi.execute import execute
+    debug('executing %s', command)
+    try:
+        subprocess = execute(command.split())
+    except Exception, exception:
+        from infi.exceptools import chain
+        raise chain(ServiceException)
+    debug('waiting for it')
+    debug('returncode = %s', subprocess.get_returncode())
+    debug('stdout = %s', subprocess.get_stdout())
+    debug('stderr = %s', subprocess.get_stderr())
+    if subprocess.get_returncode() != 0:
+        raise ServiceException(subprocess.get_stderr())
+
 class KernelModule(EntryPoint):
     def __init__(self, module_name):
         object.__init__(self)
@@ -63,32 +79,16 @@ class KernelModule(EntryPoint):
     def is_running(self):
         return self.module_name in get_list_of_live_modules()
 
-    def _execute(self, command):
-        from logging import debug
-        from infi.execute import execute
-        debug('executing %s', command)
-        try:
-            subprocess = execute(command.split())
-        except Exception, exception:
-            from infi.exceptools import chain
-            raise chain(ServiceException)
-        debug('waiting for it')
-        debug('returncode = %s', subprocess.get_returncode())
-        debug('stdout = %s', subprocess.get_stdout())
-        debug('stderr = %s', subprocess.get_stderr())
-        if subprocess.get_returncode() != 0:
-            raise ServiceException(subprocess.get_stderr())
-
     def stop(self):
         try:
-            self._execute('rmmod %s' % self.module_name)
+            execute('rmmod %s' % self.module_name)
         except ServiceException:
             from infi.exceptools import chain
             raise chain(ServiceFailedToStop)
 
     def start(self):
         try:
-            self._execute('modprobe %s' % self.module_name)
+            execute('modprobe %s' % self.module_name)
         except ServiceException:
             from infi.exceptools import chain
             raise chain(ServiceFailedToStart)
@@ -123,28 +123,41 @@ class File(EntryPoint):
     def restart(self):
         pass
 
+def get_list_of_running_processes():
+    # TODO implmement
+    return []
+
 class InitScript(EntryPoint):
-    def __init__(self, script_name):
+    def __init__(self, script_name, process_name=None):
         object.__init__(self)
         self.script_name = script_name
+        self.process_name = process_name if process_name is not None else script_name
 
     def is_installed(self):
-        return EntryPoint.is_installed(self)
+        from os.path import exists, join, sep
+        return exists(self._get_script_path())
 
     def is_running(self):
-        return EntryPoint.is_running(self)
+        return self.process_name in get_list_of_running_processes()
+
+    def _get_script_path(self):
+        from os.path import sep, join
+        return join(sep, 'etc', 'init.d', self.script_name)
+
+    def _execute(self, command):
+        execute("%s %s" (self._get_script_path(), command))
 
     def stop(self):
-        return EntryPoint.stop(self)
+        self._execute('stop')
 
     def start(self):
-        return EntryPoint.start(self)
+        self._execute('start')
 
     def reload(self):
-        return EntryPoint.reload(self)
+        self._execute('reload')
 
     def restart(self):
-        return EntryPoint.restart(self)
+        self._execute('restart')
 
 class CompositeEntryPoint(EntryPoint):
     def __init__(self):
@@ -206,3 +219,18 @@ class CompositeEntryPoint(EntryPoint):
     def reload(self):
         for key, value in self.iter_components_by_order(True):
             value.reload()
+
+def get_multipath_composite():
+    from os.path import join, sep
+    composite = CompositeEntryPoint()
+    composite.add_component(KernelModule('round-robin'), 10)
+    composite.add_component(KernelModule('multipath'), 20)
+    for item in ['multipath.d', 'multipath-tools']:
+        component = InitScript(item, 'multipathd')
+        if component.is_installed():
+            break
+    composite.add_component(component, 30)
+    # mappings files 
+    # configuration file
+    # TODO does multipathtools really need the binding and config files?
+    return composite
