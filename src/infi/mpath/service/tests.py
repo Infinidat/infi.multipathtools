@@ -99,7 +99,7 @@ class FileTestCase(unittest.TestCase):
         from os import remove
         remove(self.tempfile)
 
-class KernelModuleTestCase(unittest.TestCase):
+class TestCase(unittest.TestCase):
     def setUp(self):
         if self.should_skip():
             raise unittest.SkipTest
@@ -112,6 +112,7 @@ class KernelModuleTestCase(unittest.TestCase):
         (system, node, release, version, machine, processor) = platform.uname()
         return system.lower() != 'linux'
 
+class KernelModuleTestCase(TestCase):
     def test_floppy_module_state(self):
         from . import KernelModule
         item = KernelModule('floppy')
@@ -166,6 +167,7 @@ class MockKernelModuleTestCase(KernelModuleTestCase):
         fd, filename = self.tempfile
         fd.close()
         remove(filename)
+        KernelModuleTestCase.tearDown(self)
 
     def should_skip(self):
         return False
@@ -264,8 +266,21 @@ class MockKernelModuleTestCase(KernelModuleTestCase):
         with nested(self.mock_uname(), self.mock_execute(1), self.mock_open()):
             KernelModuleTestCase.test__cannot_stop_module(self)
 
-class InitServiceTestCase(unittest.TestCase):
-    pass
+class InitServiceTestCase(TestCase):
+    # TODO which unharmful service exists on all linuxes? (maybe single?)
+
+    def test_state(self):
+        raise NotImplementedError
+
+    def test_start(self):
+        raise NotImplementedError
+
+    def test_stop(self):
+        raise NotImplementedError
+
+class MockInitServiceTestCase(InitServiceTestCase):
+    def should_skip(self):
+        return False
 
 class CompositeServiceTestCase(unittest.TestCase):
     def test_get_composite(self):
