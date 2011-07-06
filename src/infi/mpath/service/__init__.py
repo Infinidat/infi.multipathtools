@@ -124,8 +124,18 @@ class File(EntryPoint):
         pass
 
 def get_list_of_running_processes():
-    # TODO implmement
-    return []
+    from os import listdir, readlink
+    from os.path import isdir, exists, join, sep
+
+    processes = []
+    for item in listdir(join(sep, 'proc')):
+        if not item.isdigit():
+            continue
+        if not exists(join(sep, 'proc', item, 'exe')):
+            continue
+        executable = readlink(join(sep, 'proc', item, 'exe')).split(sep)[-1]
+        processes.append(executable)
+    return processes
 
 class InitScript(EntryPoint):
     def __init__(self, script_name, process_name=None):
@@ -145,7 +155,7 @@ class InitScript(EntryPoint):
         return join(sep, 'etc', 'init.d', self.script_name)
 
     def _execute(self, command):
-        execute("%s %s" (self._get_script_path(), command))
+        execute("%s %s" % (self._get_script_path(), command))
 
     def stop(self):
         self._execute('stop')

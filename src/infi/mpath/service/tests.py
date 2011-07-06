@@ -30,7 +30,7 @@ class MockEntryPoint(EntryPoint):
     def reload(self):
         pass
 
-class MockCompositeServiceTestCase(unittest.TestCase):
+class SimpleCompositeServiceTestCase(unittest.TestCase):
     def setUp(self):
         from . import CompositeEntryPoint
         self.concrete = CompositeEntryPoint()
@@ -112,6 +112,27 @@ class TestCase(unittest.TestCase):
         (system, node, release, version, machine, processor) = platform.uname()
         return system.lower() != 'linux'
 
+    def _execute_side_effect(self, return_value):
+        execute = mock.Mock()
+        execute.wait = mock.Mock()
+        execute.get_returncode = mock.Mock()
+        execute.get_returncode.return_value = return_value
+        execute.get_stdout = mock.Mock()
+        execute.get_stdout.return_value = ''
+        execute.get_stderr = mock.Mock()
+        execute.get_stderr.return_value = ''
+
+        def side_effect(*args, **kwargs):
+            return execute
+
+        return side_effect
+
+    @contextmanager
+    def mock_execute(self, return_value):
+        with mock.patch("infi.execute.execute") as execute:
+            execute.side_effect = self._execute_side_effect(return_value)
+            yield execute
+
 class KernelModuleTestCase(TestCase):
     def test_floppy_module_state(self):
         from . import KernelModule
@@ -134,6 +155,7 @@ class KernelModuleTestCase(TestCase):
             item.start()
         item.stop()
         self.assertFalse(item.is_running())
+        item.start()
 
     def test__module_not_exists(self):
         from . import KernelModule
@@ -183,20 +205,6 @@ class MockKernelModuleTestCase(KernelModuleTestCase):
         fd.seek(0)
         self.tempfile = fd, filename
 
-    def _execute_side_effect(self, return_value):
-        execute = mock.Mock()
-        execute.wait = mock.Mock()
-        execute.get_returncode = mock.Mock()
-        execute.get_returncode.return_value = return_value
-        execute.get_stdout = mock.Mock()
-        execute.get_stdout.return_value = ''
-        execute.get_stderr = mock.Mock()
-        execute.get_stderr.return_value = ''
-
-        def side_effect(*args, **kwargs):
-            return execute
-
-        return side_effect
 
     @contextmanager
     def mock_uname(self):
@@ -211,12 +219,6 @@ class MockKernelModuleTestCase(KernelModuleTestCase):
             _open.return_value = mock.MagicMock(fd)
             _open.return_value.__enter__.return_value.read.return_value = fd.read()
             yield _open
-
-    @contextmanager
-    def mock_execute(self, return_value):
-        with mock.patch("infi.execute.execute") as execute:
-            execute.side_effect = self._execute_side_effect(return_value)
-            yield execute
 
     def test_floppy_module_state(self):
         with nested(self.mock_uname(), self.mock_execute(0), self.mock_open()) as (_, _, _open):
@@ -267,21 +269,125 @@ class MockKernelModuleTestCase(KernelModuleTestCase):
             KernelModuleTestCase.test__cannot_stop_module(self)
 
 class InitServiceTestCase(TestCase):
-    # TODO which unharmful service exists on all linuxes? (maybe single?)
+    def setUp(self):
+        TestCase.setUp(self)
+        self._choose_service()
 
-    def test_state(self):
-        raise NotImplementedError
+    def _choose_service(self):
+        from os.path import exists, sep, join
+        for item in ['ssh', 'sshd']:
+            if exists(join(sep, 'etc', 'init.d', item)):
+                self.service_name = item
+                return
+        raise unittest.SkipTest
+
+    def test_service_does_not_exists(self):
+        from . import InitScript
+        item = InitScript("foo")
+        self.assertFalse(item.is_installed())
+
+    def test_installed(self):
+        from . import InitScript
+        item = InitScript(self.service_name, 'sshd')
+        self.assertTrue(item.is_installed())
+
+    def test_running(self):
+        from . import InitScript
+        item = InitScript(self.service_name, 'sshd')
+        self.assertTrue(item.is_running())
 
     def test_start(self):
-        raise NotImplementedError
+        from . import InitScript
+        item = InitScript(self.service_name, 'sshd')
+        if not item.is_running():
+            item.stop()
+        item.start()
+        self.assertTrue(item.is_running())
 
     def test_stop(self):
-        raise NotImplementedError
+        from . import InitScript
+        item = InitScript(self.service_name, 'sshd')
+        if item.is_running():
+            item.start()
+        item.stop()
+        self.assertFalse(item.is_running())
+        item.start()
+
+    def test_get_list_of_running_processes(self):
+        from . import get_list_of_running_processes
+        actual = get_list_of_running_processes()
+        self.assertGreater(len(actual), 0)
 
 class MockInitServiceTestCase(InitServiceTestCase):
     def should_skip(self):
         return False
 
+    def _choose_service(self):
+        self.service_name = 'foo'
+
+    def test_installed(self):
+        with mock.patch("os.path.exists") as exists:
+            exists.return_value = True
+            InitServiceTestCase.test_installed(self)
+
+    @contextmanager
+    def mock_exists(self):
+        from os.path import sep
+        def side_effect(*args, **kwargs):
+            path = args[0]
+            return '20' in path.split(sep)
+
+        with mock.patch("os.path.exists") as exists:
+            exists.side_effect = side_effect
+            yield exists
+
+    def test_get_list_of_running_processes(self):
+        from os.path import join, sep
+        with nested(mock.patch("os.listdir"),
+                    mock.patch("os.readlink"),
+                    self.mock_exists()) \
+                    as (listdir, readlink, _):
+            listdir.return_value = ['10', 'a', '20', 'b', '30', 'c']
+            readlink.return_value = join(sep, 'sbin', 'foo')
+            InitServiceTestCase.test_get_list_of_running_processes(self)
+
+    def test_running(self):
+        from os.path import join, sep
+        with nested(mock.patch("os.listdir"),
+                    mock.patch("os.readlink"),
+                    self.mock_exists()) \
+                    as (listdir, readlink, _):
+            listdir.return_value = ['10', 'a', '20', 'b', '30', 'c']
+            readlink.return_value = join(sep, 'sbin', 'sshd')
+            InitServiceTestCase.test_running(self)
+
+    def test_start(self):
+        from os.path import join, sep
+        with nested(mock.patch("os.listdir"),
+                    mock.patch("os.readlink"),
+                    self.mock_exists(),
+                    self.mock_execute(0)) \
+                    as (listdir, readlink, _, _):
+            listdir.return_value = ['10', 'a', '20', 'b', '30', 'c']
+            readlink.return_value = join(sep, 'sbin', 'sshd')
+            InitServiceTestCase.test_start(self)
+
+    def test_stop(self):
+        from os.path import join, sep
+        with nested(mock.patch("os.listdir"),
+                    mock.patch("os.readlink"),
+                    self.mock_exists(),
+                    self.mock_execute(0)) \
+                    as (listdir, readlink, _, _):
+            listdir.return_value = ['10', 'a', '20', 'b', '30', 'c']
+            readlink.return_value = join(sep, 'sbin', 'nothing')
+            InitServiceTestCase.test_stop(self)
+
 class CompositeServiceTestCase(unittest.TestCase):
     def test_get_composite(self):
         from . import get_multipath_composite
+        composite = get_multipath_composite()
+
+class MockCompositeServiceTestCase(CompositeServiceTestCase):
+    def should_skip(self):
+        return False
