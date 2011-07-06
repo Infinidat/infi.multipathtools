@@ -240,7 +240,4 @@ def get_multipath_composite():
         if component.is_installed():
             break
     composite.add_component(component, 30)
-    # mappings files 
-    # configuration file
-    # TODO does multipathtools really need the binding and config files?
     return composite
