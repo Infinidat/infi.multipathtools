@@ -167,13 +167,15 @@ class KernelModuleTestCase(TestCase):
         with open(join(sep, 'proc', 'modules')) as modules:
             for line in modules.readlines():
                 module_name, _, used_by_counter, _, _, _ = line.split()
-                if used_by_counter:
+                if int(used_by_counter):
                     return module_name
         return None
 
     def test__cannot_stop_module(self):
         from . import KernelModule, ServiceFailedToStop
+        from logging import debug
         module_in_use = self._get_module_in_use()
+        debug("module is use: %s", module_in_use)
         if module_in_use is None:
             raise unittest.SkipTest
         item = KernelModule(module_in_use)

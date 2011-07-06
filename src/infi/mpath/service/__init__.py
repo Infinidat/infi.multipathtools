@@ -148,7 +148,14 @@ class InitScript(EntryPoint):
         return exists(self._get_script_path())
 
     def is_running(self):
-        return self.process_name in get_list_of_running_processes()
+        from os import listdir
+        from os.path import exists, join, sep
+        pid_file = join(sep, 'var', 'run', '%s.pid' % self.process_name)
+        if not exists(pid_file):
+            return False
+        with open(pid_file, 'r') as fd:
+            pid = fd.read().splitlines()[0].strip()
+            return pid in listdir(join(sep, 'proc'))
 
     def _get_script_path(self):
         from os.path import sep, join
