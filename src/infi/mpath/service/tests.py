@@ -320,6 +320,16 @@ class InitServiceTestCase(TestCase):
         actual = get_list_of_running_processes()
         self.assertGreater(len(actual), 0)
 
+    def test_restart(self):
+        from . import InitScript
+        item = InitScript(self.service_name, 'sshd')
+        item.restart()
+
+    def test_reload(self):
+        from . import InitScript
+        item = InitScript(self.service_name, 'sshd')
+        item.reload()
+
 class MockInitServiceTestCase(InitServiceTestCase):
     def should_skip(self):
         return False
@@ -391,6 +401,12 @@ class MockInitServiceTestCase(InitServiceTestCase):
             exists.return_value = True
             listdir.return_value = ['10', 'a', 'b', '30', 'c']
             InitServiceTestCase.test_stop(self)
+
+    def test_restart(self):
+        pass
+
+    def test_reload(self):
+        pass
 
 class CompositeServiceTestCase(unittest.TestCase):
     def test_get_composite(self):

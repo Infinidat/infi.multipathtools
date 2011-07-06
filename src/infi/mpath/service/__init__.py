@@ -94,10 +94,10 @@ class KernelModule(EntryPoint):
             raise chain(ServiceFailedToStart)
 
     def reload(self):
-        pass
+        pass # pragma: no cover
 
     def restart(self):
-        pass
+        pass # pragma: no cover
 
 class File(EntryPoint):
     def __init__(self, path):
