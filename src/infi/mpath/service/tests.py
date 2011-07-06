@@ -353,36 +353,43 @@ class MockInitServiceTestCase(InitServiceTestCase):
             readlink.return_value = join(sep, 'sbin', 'foo')
             InitServiceTestCase.test_get_list_of_running_processes(self)
 
+    @contextmanager
+    def mock_open(self):
+        with mock.patch("__builtin__.open") as _open:
+            _open.return_value = mock.MagicMock(file)
+            _open.return_value.__enter__.return_value.read.return_value = '20\n'
+            yield _open
+
     def test_running(self):
-        from os.path import join, sep
         with nested(mock.patch("os.listdir"),
-                    mock.patch("os.readlink"),
-                    self.mock_exists()) \
-                    as (listdir, readlink, _):
+                    mock.patch("os.path.exists"),
+                    self.mock_open()) \
+                    as (listdir, exists, _):
             listdir.return_value = ['10', 'a', '20', 'b', '30', 'c']
-            readlink.return_value = join(sep, 'sbin', 'sshd')
+            exists.return_value = True
             InitServiceTestCase.test_running(self)
 
     def test_start(self):
-        from os.path import join, sep
         with nested(mock.patch("os.listdir"),
-                    mock.patch("os.readlink"),
-                    self.mock_exists(),
+                    mock.patch("os.path.exists"),
+                    self.mock_open(),
                     self.mock_execute(0)) \
-                    as (listdir, readlink, _, _):
+                    as (listdir, exists, _, _):
             listdir.return_value = ['10', 'a', '20', 'b', '30', 'c']
-            readlink.return_value = join(sep, 'sbin', 'sshd')
+            exists.return_value = True
             InitServiceTestCase.test_start(self)
 
     def test_stop(self):
-        from os.path import join, sep
         with nested(mock.patch("os.listdir"),
-                    mock.patch("os.readlink"),
-                    self.mock_exists(),
+                    mock.patch("os.path.exists"),
+                    self.mock_open(),
                     self.mock_execute(0)) \
-                    as (listdir, readlink, _, _):
+                    as (listdir, exists, _, _):
             listdir.return_value = ['10', 'a', '20', 'b', '30', 'c']
-            readlink.return_value = join(sep, 'sbin', 'nothing')
+            exists.return_value = False
+            InitServiceTestCase.test_stop(self)
+            exists.return_value = True
+            listdir.return_value = ['10', 'a', 'b', '30', 'c']
             InitServiceTestCase.test_stop(self)
 
 class CompositeServiceTestCase(unittest.TestCase):
