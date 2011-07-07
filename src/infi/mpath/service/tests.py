@@ -3,7 +3,7 @@ import unittest
 import mock
 
 from contextlib import contextmanager, nested
-
+from time import sleep
 from . import EntryPoint
 
 class MockEntryPoint(EntryPoint):
@@ -135,7 +135,6 @@ class InitServiceTestCase(TestCase):
         if not item.is_running():
             item.stop()
         item.start()
-        from time import sleep
         sleep(1) # this sucks, python returns False to exists(pid_file) although it exists
         self.assertTrue(item.is_running())
 
@@ -146,17 +145,21 @@ class InitServiceTestCase(TestCase):
             item.start()
         item.stop()
         self.assertFalse(item.is_running())
+        sleep(1) # this sucks, python returns False to exists(pid_file) although it exists
         item.start()
+        sleep(1) # this sucks, python returns False to exists(pid_file) although it exists
 
     def test_restart(self):
         from . import InitScript
         item = InitScript(self.service_name, 'sshd')
         item.restart()
+        sleep(1) # this sucks, python returns False to exists(pid_file) although it exists
 
     def test_reload(self):
         from . import InitScript
         item = InitScript(self.service_name, 'sshd')
         item.reload()
+        sleep(1) # this sucks, python returns False to exists(pid_file) although it exists
 
 class KernelModuleTestCase(TestCase):
     def _get_module_in_use(self):
