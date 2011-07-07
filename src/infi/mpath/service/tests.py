@@ -69,7 +69,6 @@ class CompositeServiceTestCase(TestCase):
         from . import get_multipath_composite
         composite = get_multipath_composite()
         self.assertTrue(composite.is_installed())
-        self.assertTrue(composite.is_running())
 
 class FileTestCase(unittest.TestCase):
     def setUp(self):
@@ -136,6 +135,8 @@ class InitServiceTestCase(TestCase):
         if not item.is_running():
             item.stop()
         item.start()
+        from time import sleep
+        sleep(1) # this sucks, python returns False to exists(pid_file) although it exists
         self.assertTrue(item.is_running())
 
     def test_stop(self):
@@ -328,7 +329,7 @@ class MockKernelModuleTestCase(KernelModuleTestCase):
     def test_is_installed(self):
         with nested(self.mock_uname(), self.mock_execute(0), self.mock_open()) as (_, _, _open):
             _open.return_value.__enter__.return_value.readlines.return_value = \
-                    ['floppy 1234 0 - Live 0x00', 'ext3 4321 0 - Live 0x00']
+                    ["/a/b/c/floppy.ko: a\n/foo/a.ko:"]
             KernelModuleTestCase.test_is_installed(self)
             self.assertEquals(_open.return_value.__enter__.return_value.read.call_count, 1)
 
@@ -355,12 +356,6 @@ class MockKernelModuleTestCase(KernelModuleTestCase):
 
             _open.return_value.__enter__.return_value.readlines.side_effect = side_effect
             KernelModuleTestCase.test_stop(self)
-
-    def test_module_listing(self):
-        from . import is_module_name_listed_in_dep_file
-        fd, filename = self.tempfile
-        module_name, content = 'floppy', fd.read()
-        self.assertTrue(is_module_name_listed_in_dep_file(module_name, content))
 
     def test_is_installed__no_such_module(self):
         with nested(self.mock_uname(), self.mock_execute(0), self.mock_open()):

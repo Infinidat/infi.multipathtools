@@ -33,12 +33,6 @@ class EntryPoint(object):
     def restart(self):
         raise NotImplementedError # pragma: no cover
 
-def is_module_name_listed_in_dep_file(module_name, content):
-    import re
-    regex = re.compile(r'^[A-Za-z0-9-_/]*/%s.ko:\w*$' % module_name, re.MULTILINE)
-    match = regex.search(content)
-    return True if match and match.group() else False
-
 def get_list_of_live_modules():
     from os.path import join, sep
     with open(join(sep, 'proc', 'modules')) as modules:
@@ -54,27 +48,36 @@ def execute(command):
         from infi.exceptools import chain
         raise chain(ServiceException)
     debug('waiting for it')
+    subprocess.wait()
     debug('returncode = %s', subprocess.get_returncode())
     debug('stdout = %s', subprocess.get_stdout())
     debug('stderr = %s', subprocess.get_stderr())
     if subprocess.get_returncode() != 0:
         raise ServiceException(subprocess.get_stderr())
 
+def get_kernel_release():
+    import platform
+    (system, node, release, version, machine, processor) = platform.uname()
+    return release
+
+def get_modules_list():
+    from os.path import sep, join
+    modules = []
+    with open(join(sep, 'lib', 'modules', get_kernel_release(), 'modules.dep')) as modules_dep:
+        content = modules_dep.read()
+        for line in content.splitlines():
+            module_path, depedency_list = line.split(':', 1)
+            module_name = module_path.split(sep)[-1].split(".")[0]
+            modules.append(module_name)
+    return modules
+
 class KernelModule(EntryPoint):
     def __init__(self, module_name):
         object.__init__(self)
         self.module_name = module_name
 
-    def get_kernel_release(self):
-        import platform
-        (system, node, release, version, machine, processor) = platform.uname()
-        return release
-
     def is_installed(self):
-        from os.path import sep, join
-        with open(join(sep, 'lib', 'modules', self.get_kernel_release(), 'modules.dep')) as modules_dep:
-            content = modules_dep.read()
-        return is_module_name_listed_in_dep_file(self.module_name, content)
+        return self.module_name in get_modules_list()
 
     def is_running(self):
         return self.module_name in get_list_of_live_modules()
@@ -150,12 +153,16 @@ class InitScript(EntryPoint):
     def is_running(self):
         from os import listdir
         from os.path import exists, join, sep
+        from logging import debug
         pid_file = join(sep, 'var', 'run', '%s.pid' % self.process_name)
         if not exists(pid_file):
+            debug("did not found pid file %s", pid_file)
             return False
         with open(pid_file, 'r') as fd:
             pid = fd.read().splitlines()[0].strip()
-            return pid in listdir(join(sep, 'proc'))
+            pid_running = pid in listdir(join(sep, 'proc'))
+            debug("is pid %s listed under /proc? %s", pid, pid_running)
+            return pid_running
 
     def _get_script_path(self):
         from os.path import sep, join
@@ -240,11 +247,14 @@ class CompositeEntryPoint(EntryPoint):
 def get_multipath_composite():
     from os.path import join, sep
     composite = CompositeEntryPoint()
-    composite.add_component(KernelModule('round-robin'), 10)
-    composite.add_component(KernelModule('multipath'), 20)
-    for item in ['multipath.d', 'multipath-tools']:
+    for item in ['multipath', 'dm-multipath']:
+        component = KernelModule(item)
+        if component.is_installed():
+            break
+    composite.add_component(component, 10)
+    for item in ['multipathd', 'multipath-tools']:
         component = InitScript(item, 'multipathd')
         if component.is_installed():
             break
-    composite.add_component(component, 30)
+    composite.add_component(component, 20)
     return composite
