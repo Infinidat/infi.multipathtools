@@ -39,9 +39,7 @@ class TestCase(unittest.TestCase):
         pass
 
     def should_skip(self):
-        import platform
-        (system, node, release, version, machine, processor) = platform.uname()
-        return system.lower() != 'linux'
+        return True
 
     def _execute_side_effect(self, return_value):
         execute = mock.Mock()
@@ -135,7 +133,6 @@ class InitServiceTestCase(TestCase):
         if not item.is_running():
             item.stop()
         item.start()
-        sleep(1) # this sucks, python returns False to exists(pid_file) although it exists
         self.assertTrue(item.is_running())
 
     def test_stop(self):
@@ -145,21 +142,17 @@ class InitServiceTestCase(TestCase):
             item.start()
         item.stop()
         self.assertFalse(item.is_running())
-        sleep(1) # this sucks, python returns False to exists(pid_file) although it exists
         item.start()
-        sleep(1) # this sucks, python returns False to exists(pid_file) although it exists
 
     def test_restart(self):
         from . import InitScript
         item = InitScript(self.service_name, 'sshd')
         item.restart()
-        sleep(1) # this sucks, python returns False to exists(pid_file) although it exists
 
     def test_reload(self):
         from . import InitScript
         item = InitScript(self.service_name, 'sshd')
         item.reload()
-        sleep(1) # this sucks, python returns False to exists(pid_file) although it exists
 
 class KernelModuleTestCase(TestCase):
     def _get_module_in_use(self):
