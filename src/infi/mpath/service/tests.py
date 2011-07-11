@@ -320,6 +320,7 @@ class MockKernelModuleTestCase(KernelModuleTestCase):
         with mock.patch("__builtin__.open") as _open:
             _open.return_value = mock.MagicMock(fd)
             _open.return_value.__enter__.return_value.read.return_value = fd.read()
+            _open.return_value.__enter__.return_value.readlines.return_value = []
             yield _open
 
     def test_is_installed(self):
