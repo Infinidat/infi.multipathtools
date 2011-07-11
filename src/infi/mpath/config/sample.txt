@@ -1,0 +1,91 @@
+defaults {
+	rr_min_io 100
+	features "1 queue_if_no_path"
+	prio "alua"
+	path_grouping_policy multibus
+	dev_loss_tmo 600
+	uid 0
+	path_selector "round-robin 0"
+	fast_io_fail_tmo 5
+	udev_dir /dev
+	prio_args "timeout=1000 preferredsds=foo"
+	gid disk
+	path_checker directio
+	flush_on_last_del yes
+	polling_interval 10
+	getuid_callout "/lib/udev/scsi_id --whitelisted --device=/dev/%n"
+	max_fds 8192
+	failback immediate
+	rr_weight priorities
+	no_path_retry queue
+	mode 0644
+	user_friendly_names no
+	checker_timeout 60
+	queue_without_daemon no
+}
+blacklist {
+	devnode "^(ram|raw|loop|fd|md|dm-|sr|scd|st)[0-9]*"
+	devnode "^hd[a-z]"
+	devnode "^dcssblk[0-9]*"
+	device {
+		product MSA[15]00
+		vendor DEC.*
+	}
+	wwid 26353900f02796769
+}
+blacklist_exceptions {
+	devnode "^dasd[c-d]+[0-9]*"
+	wwid "IBM.75000000092461.4d00.34"
+	wwid "IBM.75000000092461.4d00.35"
+	wwid "IBM.75000000092461.4d00.36"
+}
+devices {
+	device {
+		rr_min_io 100
+		features "1 queue_if_no_path"
+		prio "hp_sw"
+		path_grouping_policy failover
+		dev_loss_tmo 600
+		product_blacklist LUN_Z
+		path_selector "round-robin 0"
+		fast_io_fail_tmo 5
+		prio_args "timeout=1000 preferredsds=foo"
+		path_checker directio
+		product "HSV110 (C)COMPAQ"
+		vendor "COMPAQ "
+		flush_on_last_del yes
+		hardware_handler "1 emc"
+		failback 30
+		rr_weight priorities
+		getuid_callout "/lib/udev/scsi_id --whitelisted --device=/dev/%n"
+		no_path_retry queue
+	}
+	device {
+		path_checker tur
+		product "MSA1000 "
+		vendor "COMPAQ "
+		path_grouping_policy multibus
+		rr_weight priorities
+	}
+}
+multipaths {
+	multipath {
+		rr_min_io 100
+		path_selector "round-robin 0"
+		uid 0
+		rr_weight priorities
+		flush_on_last_del yes
+		path_grouping_policy failover
+		failback manual
+		alias yellow
+		no_path_retry queue
+		mode 0644
+		gid 0
+		wwid 3600508b4000156d700012000000b0000
+	}
+	multipath {
+		rr_weight priorities
+		alias red
+		wwid 1DEC_____321816758474
+	}
+}
