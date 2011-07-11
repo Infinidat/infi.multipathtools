@@ -1,4 +1,6 @@
 
+#pylint: disable-all
+
 import unittest
 import mock
 

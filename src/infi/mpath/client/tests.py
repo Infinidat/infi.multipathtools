@@ -6,6 +6,8 @@ from contextlib import contextmanager
 
 from ctypes import sizeof, c_size_t
 
+#pylint: disable-all
+
 TEST_MESSAGE_TO_SEND = 'reconfigure'
 TEST_MESSAGE_SIZE_TO_SEND = '\x0b' + '\x00' * (sizeof(c_size_t) - 1)
 TEST_MESSAGE_SIZE_TO_RECEIVE = '\x04' + '\x00' * (sizeof(c_size_t) - 1)

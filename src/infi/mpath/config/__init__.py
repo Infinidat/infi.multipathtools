@@ -18,7 +18,7 @@ def bunch_to_multipath_conf(bunch):
     return '\n'.join(strings)
 
 def populate_bunch_from_multipath_conf_string(instance, string):
-    from re import compile, DOTALL, MULTILINE
+    from re import compile, DOTALL, MULTILINE #pylint: disable-msg=W0622
     re_flags = DOTALL | MULTILINE
     key_value_pattern = compile(KEY_VALUE_PATTERN, re_flags)
 
@@ -29,8 +29,7 @@ def populate_bunch_from_multipath_conf_string(instance, string):
 # taken from multipath-tools/libmultipath/dict.c
 
 class HardwareEntry(Bunch):
-    def __init__(self, *args, **kwargs):
-        super(HardwareEntry, self).__init__(*args, **kwargs)
+    def __init__(self, *args, **kwargs): #pylint: disable-msg=W0613
         for item in ['vendor', 'product', 'revision', 'product_blacklist',
                      'path_grouping_policy', 'getuid_callout', 'path_checker',
                      'alias_prefix', 'features', 'hardware_handler', 'prio',
@@ -40,8 +39,7 @@ class HardwareEntry(Bunch):
             setattr(self, item, None)
 
 class MultipathEntry(Bunch):
-    def __init__(self, *args, **kwargs):
-        super(MultipathEntry, self).__init__(*args, **kwargs)
+    def __init__(self, *args, **kwargs): #pylint: disable-msg=W0613
         for item in ['wwid', 'alias', 'path_grouping_policy', 'path_selector',
                      'failback', 'rr_weight', 'no_path_retry', 'rr_min_io',
                      'rr_min_io_rq', 'pg_timeout', 'flush_on_last_del',
@@ -49,8 +47,7 @@ class MultipathEntry(Bunch):
             setattr(self, item, None)
 
 class ConfigurationAttributes(Bunch):
-    def __init__(self, *args, **kwargs):
-        super(ConfigurationAttributes, self).__init__(*args, **kwargs)
+    def __init__(self, *args, **kwargs): #pylint: disable-msg=W0613
         for item in ['verbosity', 'polling_interval', 'udev_dir', 'multipath_dir',
                      'path_selector', 'path_grouping_policy', 'getuid_callout',
                      'prio', 'prio_args', 'features', 'path_checker', 'alias_prefix',
@@ -81,7 +78,7 @@ class RuleList(object):
 
     @classmethod
     def from_multipathd_conf(cls, string):
-        from re import compile, DOTALL, MULTILINE
+        from re import compile, DOTALL, MULTILINE #pylint: disable-msg=W0622
         re_flags = DOTALL | MULTILINE
         rulelist_pattern = compile(RULELIST_PATTERN, re_flags)
 
@@ -102,8 +99,7 @@ class RuleList(object):
         return instance
 
 class Device(Bunch):
-    def __init__(self, *args, **kwargs):
-        super(Device, self).__init__(*args, **kwargs)
+    def __init__(self, *args, **kwargs): #pylint: disable-msg=W0613
         for item in ['vendor', 'product']:
             setattr(self, item, None)
 
@@ -161,15 +157,15 @@ class Configuration(object):
 
     @classmethod
     def from_multipathd_conf(cls, string):
-        from re import compile, DOTALL, MULTILINE
+        from re import compile, DOTALL, MULTILINE #pylint: disable-msg=W0622
         re_flags = DOTALL | MULTILINE
         pattern = compile(MULTIPATH_CONF_PATTERN, re_flags)
         device_pattern = compile(DEVICE_PATTERN, re_flags)
         instance = cls()
 
-        def populate_list(list, base_class, content):
+        def populate_list(list, base_class, content): #pylint: disable-msg=W0622
             for match in device_pattern.finditer(content):
-                key, value = match.groupdict()['key'], match.groupdict()['value']
+                _, value = match.groupdict()['key'], match.groupdict()['value']
                 entry = base_class()
                 populate_bunch_from_multipath_conf_string(entry, value)
                 list.append(entry)

@@ -40,11 +40,11 @@ def get_list_of_live_modules():
 
 def execute(command):
     from logging import debug
-    from infi.execute import execute
+    from infi.execute import execute as _execute
     debug('executing %s', command)
     try:
-        subprocess = execute(command.split())
-    except Exception, exception:
+        subprocess = _execute(command.split())
+    except:
         from infi.exceptools import chain
         raise chain(ServiceException)
     debug('waiting for it')
@@ -57,7 +57,7 @@ def execute(command):
 
 def get_kernel_release():
     import platform
-    (system, node, release, version, machine, processor) = platform.uname()
+    (_, _, release, _, _, _) = platform.uname()
     return release
 
 def get_modules_list():
@@ -66,14 +66,14 @@ def get_modules_list():
     with open(join(sep, 'lib', 'modules', get_kernel_release(), 'modules.dep')) as modules_dep:
         content = modules_dep.read()
         for line in content.splitlines():
-            module_path, depedency_list = line.split(':', 1)
+            module_path, _ = line.split(':', 1)
             module_name = module_path.split(sep)[-1].split(".")[0]
             modules.append(module_name)
     return modules
 
 class KernelModule(EntryPoint):
     def __init__(self, module_name):
-        object.__init__(self)
+        super(KernelModule, self).__init__()
         self.module_name = module_name
 
     def is_installed(self):
@@ -104,7 +104,7 @@ class KernelModule(EntryPoint):
 
 class File(EntryPoint):
     def __init__(self, path):
-        object.__init__(self)
+        super(File, self).__init__()
         self.path = path
 
     def is_installed(self):
@@ -128,7 +128,7 @@ class File(EntryPoint):
 
 def get_list_of_running_processes():
     from os import listdir, readlink
-    from os.path import isdir, exists, join, sep
+    from os.path import exists, join, sep
 
     processes = []
     for item in listdir(join(sep, 'proc')):
@@ -142,12 +142,12 @@ def get_list_of_running_processes():
 
 class InitScript(EntryPoint):
     def __init__(self, script_name, process_name=None):
-        object.__init__(self)
+        super(InitScript, self).__init__()
         self.script_name = script_name
         self.process_name = process_name if process_name is not None else script_name
 
     def is_installed(self):
-        from os.path import exists, join, sep
+        from os.path import exists
         return exists(self._get_script_path())
 
     def is_running(self):
@@ -227,12 +227,12 @@ class CompositeEntryPoint(EntryPoint):
         return True
 
     def stop(self):
-        for key, value in self.iter_components_by_order(False):
+        for _, value in self.iter_components_by_order(False):
             if value.is_running():
                 value.stop()
 
     def start(self):
-        for key, value in self.iter_components_by_order(True):
+        for _, value in self.iter_components_by_order(True):
             if not value.is_running():
                 value.start()
 
@@ -241,11 +241,10 @@ class CompositeEntryPoint(EntryPoint):
         self.start()
 
     def reload(self):
-        for key, value in self.iter_components_by_order(True):
+        for _, value in self.iter_components_by_order(True):
             value.reload()
 
 def get_multipath_composite():
-    from os.path import join, sep
     composite = CompositeEntryPoint()
     for item in ['multipath', 'dm-multipath']:
         component = KernelModule(item)

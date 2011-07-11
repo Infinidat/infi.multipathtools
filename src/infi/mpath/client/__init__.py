@@ -3,6 +3,8 @@ import logging
 from infi.exceptools import chain
 from os.path import exists, sep, join
 
+#pylint: disable-msg=E1101
+
 DEFAULT_SOCKET = join(sep, 'var', 'run', 'multipathd.sock')
 DEFAULT_TIMEOUT = 3
 MAX_SIZE = 2 ** 8
@@ -39,7 +41,7 @@ class UnixDomainSocket(BaseConnection):
         self._address = address
         self._socket = None
 
-    def connect(self, address=None):
+    def connect(self):
         import socket
         try:
             socket_object = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
@@ -61,7 +63,7 @@ class UnixDomainSocket(BaseConnection):
             raise chain(ConnectionError)
 
         if bytes_sent < len(message):
-                self.send(message[bytes_sent:])
+            self.send(message[bytes_sent:])
 
     def receive(self, expected_length=MAX_SIZE):
         from socket import timeout, error
@@ -90,7 +92,7 @@ from ctypes import c_size_t, sizeof
 HEADER_SIZE = sizeof(c_size_t)
 
 class MessageLength(Struct):
-            _fields_ = [(ULInt64 if HEADER_SIZE == 8 else ULInt32)("length"), ]
+    _fields_ = [(ULInt64 if HEADER_SIZE == 8 else ULInt32)("length"), ]
 
 class MultipathClient(object):
     def __init__(self, connection=UnixDomainSocket()):

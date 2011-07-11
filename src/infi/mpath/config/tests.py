@@ -1,11 +1,8 @@
-'''
-Created on Jul 11, 2011
-
-@author: guy
-'''
 
 from unittest import TestCase, SkipTest
 from mock import patch, Mock, MagicMock
+
+#pylint: disable-all
 
 EMPTY_CONFIGURATION = """
 defaults {

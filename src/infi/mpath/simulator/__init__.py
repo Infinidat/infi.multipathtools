@@ -3,10 +3,20 @@ from ..client import BaseConnection
 from ..client import MessageLength
 from infi.exceptools import chain
 
+#pylint: disable-msg=E1101
+
 class SimulatorError(Exception):
     pass
 
 class SimulatorConnection(BaseConnection):
+    def __init__(self):
+        self._connected = False
+        self._response = None
+        self._expecting_length = False
+        self._expected_length = 0
+        self._message_to_return = None
+        self._sent_message_size = False
+
     def connect(self):
         self._connected = True
         self._response = None
@@ -23,7 +33,7 @@ class SimulatorConnection(BaseConnection):
             assert len(message) == self._expected_length
             self._message_to_return = Singleton().handle_incomming_message(message)
 
-    def receive(self, expected_size):
+    def receive(self, expected_size): #pylint: disable-msg=W0613
         if not self._connected or not self._message_to_return:
             raise SimulatorError
         if not self._sent_message_size:
@@ -51,7 +61,7 @@ class Singleton(object):
     _instance = None
 
     @classmethod
-    def __new__(cls, *args, **kwargs):
+    def __new__(cls, *args, **kwargs): #pylint: disable-msg=W0613
         if not cls._instance:
             cls._instance = Simulator()
         return cls._instance
