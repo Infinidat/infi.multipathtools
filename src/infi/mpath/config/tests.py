@@ -55,8 +55,8 @@ class OutputTests(TestCase):
         config = Configuration()
         config.blacklist.device.append(Device())
         config.whitelist.device.append(Device())
-        config.hardware_items.append(HardwareEntry())
-        config.multipath_items.append(MultipathEntry())
+        config.multipaths.append(HardwareEntry())
+        config.devices.append(MultipathEntry())
         self.assertEquals(config.to_multipathd_conf(), EMPTY_CONFIGURATION__EMPTY_CHILDREN)
 
 from re import compile, DOTALL, MULTILINE
@@ -167,11 +167,11 @@ class InputTests(TestCase):
         self.assertIn('"^dcssblk[0-9]*"', config.blacklist.devnode)
         self.assertEqual(config.blacklist.device[0].product, "MSA[15]00")
         self.assertIn('"IBM.75000000092461.4d00.36"', config.whitelist.wwid)
-        self.assertEqual(len(config.multipath_items), 2)
-        self.assertEqual(config.multipath_items[0].wwid, "3600508b4000156d700012000000b0000")
-        self.assertEqual(config.multipath_items[0].failback, "manual")
-        self.assertEqual(len(config.hardware_items), 2)
-        self.assertEqual(config.hardware_items[1].path_grouping_policy, "multibus")
+        self.assertEqual(len(config.devices), 2)
+        self.assertEqual(config.devices[0].wwid, "3600508b4000156d700012000000b0000")
+        self.assertEqual(config.devices[0].failback, "manual")
+        self.assertEqual(len(config.multipaths), 2)
+        self.assertEqual(config.multipaths[1].path_grouping_policy, "multibus")
 
 class InOut(TestCase):
     def test_sample_configuration(self):

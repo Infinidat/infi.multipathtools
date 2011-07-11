@@ -58,6 +58,13 @@ class ConfigurationAttributes(Bunch):
             setattr(self, item, None)
 
 class RuleList(object):
+    """ container for {black,white}list configuration:
+    
+    devnode    a list of the the regular experssions
+    device     a list of the device declarations
+    wwid       a list of the WWIDs being included
+    
+    """
     def __init__(self):
         super(RuleList, self).__init__()
         self.device = []
@@ -122,15 +129,36 @@ MULTIPATH_CONF_PATTERN = \
          )
 
 class Configuration(object):
+    """ container for multipathd.conf
+    
+    the pupose of the class (and module) is to hold the configuration of multipathd.conf
+    it provides a bunch-like interface to all the configuration, where the keys are the option names as defined
+    in multipath.conf.annotated.
+    all values are stored as strings.
+    
+    The configuration contains several elements:
+    
+    devices        a list of devices, the devices {} section of multipath.conf
+    multipaths     a list of mulltipath(es), the multipaths section of multipath.conf
+    blacklist      the blacklist section of multipath.conf
+    whitelist      the blacklist_exceptions section of multipath.conf
+    
+    This class also provides two-way translation to/from the syntax of multipath.conf.
+    See the help of to_multipathd_conf and from_multipathd_conf 
+    """
+
     def __init__(self):
         super(Configuration, self).__init__()
         self.attributes = ConfigurationAttributes()
-        self.multipath_items = []
-        self.hardware_items = []
+        self.devices = []
+        self.multipaths = []
         self.blacklist = RuleList()
         self.whitelist = RuleList()
 
     def to_multipathd_conf(self):
+        """ return a string representation of configuration is the syntax of multipath.conf
+        unused values are not written to the configuration file
+        """
         strings = []
         strings.append('defaults {')
         strings.extend(['\t%s' % line for line in bunch_to_multipath_conf(self.attributes).splitlines()])
@@ -142,13 +170,13 @@ class Configuration(object):
         strings.extend(['\t%s' % line for line in self.whitelist.to_multipathd_conf().splitlines()])
         strings.append('}')
         strings.append('devices {')
-        for device in self.hardware_items:
+        for device in self.multipaths:
             strings.append('\tdevice {')
             strings.extend(['\t\t%s' % line for line in bunch_to_multipath_conf(device).splitlines()])
             strings.append('\t}')
         strings.append('}')
         strings.append('multipaths {')
-        for multipath in self.multipath_items:
+        for multipath in self.devices:
             strings.append('\tmultipath {')
             strings.extend(['\t\t%s' % line for line in bunch_to_multipath_conf(multipath).splitlines()])
             strings.append('\t}')
@@ -156,7 +184,16 @@ class Configuration(object):
         return '\n'.join(strings)
 
     @classmethod
-    def from_multipathd_conf(cls, string):
+    def from_multipathd_conf(cls, show_config_output):
+        """ this class method takes the multipathd configuration, as taken from multipathd -k; show config
+        and returns an instance with all the configuration parsed out of the input
+        
+        this method may fail parsing the configuration if it was read directly from the configuration file,
+        since it makes some assumpsions that are always valid when looking at the output of 'show config' command.
+        For exmaple:
+        * identations are with tab characters, and not spaces
+        * between and key and value, only one space character exists
+        """
         from re import compile, DOTALL, MULTILINE #pylint: disable-msg=W0622
         re_flags = DOTALL | MULTILINE
         pattern = compile(MULTIPATH_CONF_PATTERN, re_flags)
@@ -170,7 +207,7 @@ class Configuration(object):
                 populate_bunch_from_multipath_conf_string(entry, value)
                 list.append(entry)
 
-        for section in pattern.finditer(string):
+        for section in pattern.finditer(show_config_output):
             name, content = section.groupdict()['name'], section.groupdict()['content']
             if name == 'defaults':
                 populate_bunch_from_multipath_conf_string(instance.attributes, content)
@@ -179,8 +216,8 @@ class Configuration(object):
             elif name == 'blacklist_exceptions':
                 instance.whitelist = RuleList.from_multipathd_conf(content)
             elif name == 'devices':
-                populate_list(instance.hardware_items, HardwareEntry, content)
+                populate_list(instance.multipaths, HardwareEntry, content)
             elif name == 'multipaths':
-                populate_list(instance.multipath_items, MultipathEntry, content)
+                populate_list(instance.devices, MultipathEntry, content)
 
         return instance
