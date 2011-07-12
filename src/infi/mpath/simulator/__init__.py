@@ -71,6 +71,7 @@ class Simulator(object):
             self._configuration = Configuration.from_multipathd_conf(conf_fd.read())
 
     def handle_incomming_message(self, message):
+        message = message.strip('\n')
         self._handled_messages.append(message)
         if message == 'reconfigure':
             self._load_configuration()

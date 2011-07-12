@@ -8,10 +8,6 @@ DEFAULT_CONF_FILE = join(sep, 'etc', 'multipath.conf')
 
 from ..connection import MessageLength, UnixDomainSocket
 
-def get_bunch_from_multipathd_output(maps_topology, paths_table):
-    result = dict()
-    return result
-
 class MultipathClient(object):
     def __init__(self, connection=UnixDomainSocket()):
         super(MultipathClient, self).__init__() #pragma: no cover
@@ -38,6 +34,7 @@ class MultipathClient(object):
         return string
 
     def _send_and_receive(self, message):
+        message = "%s\n" % message
         with self._with_connection_open():
             self._connection.send(self._get_message_size_as_string(message))
             self._connection.send(message)
@@ -62,6 +59,7 @@ class MultipathClient(object):
             fd.write(value.to_multipathd_conf())
 
     def _get_multipath_information(self):
+        from model import get_bunch_from_multipathd_output
         maps_topology = self._send_and_receive("show multipaths topology")
         paths_table = self._send_and_receive("show paths")
         result = get_bunch_from_multipathd_output(maps_topology, paths_table)
