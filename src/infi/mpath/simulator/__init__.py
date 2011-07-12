@@ -1,6 +1,6 @@
 
-from ..client import BaseConnection
-from ..client import MessageLength
+from ..connection import BaseConnection
+from ..connection import MessageLength
 from infi.exceptools import chain
 
 #pylint: disable-msg=E1101

@@ -221,3 +221,4 @@ class Configuration(object):
                 populate_list(instance.devices, MultipathEntry, content)
 
         return instance
+
