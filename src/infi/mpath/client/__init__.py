@@ -90,6 +90,7 @@ from infi.instruct import ULInt32, ULInt64
 from ctypes import c_size_t, sizeof
 
 HEADER_SIZE = sizeof(c_size_t)
+DEFAULT_CONF_FILE = join(sep, 'etc', 'multipath.conf')
 
 class MessageLength(Struct):
     _fields_ = [(ULInt64 if HEADER_SIZE == 8 else ULInt32)("length"), ]
@@ -132,3 +133,13 @@ class MultipathClient(object):
         result = self._send_and_receive("reconfigure")
         if result != 'ok':
             raise RuntimeError(result) # TODO test this
+
+    def get_multipathd_conf(self):
+        from ..config import Configuration
+        return Configuration.from_multipathd_conf(self._send_and_receive("show config"))
+
+    def write_to_multipathd_conf(self, value, filepath=DEFAULT_CONF_FILE):
+        from ..config import Configuration
+        assert isinstance(value, Configuration)
+        with open(filepath, 'w') as fd:
+            fd.write(value.to_multipathd_conf())

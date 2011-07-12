@@ -48,14 +48,43 @@ class SimulatorConnection(BaseConnection):
         self._connected = False
 
 class Simulator(object):
-    def __init__(self):
+    def __init__(self, conf_path):
         super(Simulator, self).__init__()
         self._handled_messages = []
+        self._conf_path = conf_path
+        self._write_sample_config_if_empty()
+        self._load_configuration()
+
+    def _write_sample_config_if_empty(self):
+        from os.path import exists, join, sep, dirname
+        if exists(self._conf_path) and open(self._conf_path).read() != '':
+            return
+        from ..config.tests import SAMPLE_FILEPATH
+        with open(SAMPLE_FILEPATH) as sample_fd:
+            sample_content = sample_fd.read()
+        with open(self._conf_path, 'w') as conf_fd:
+            conf_fd.write(sample_content)
+
+    def _load_configuration(self):
+        from ..config import Configuration
+        with open(self._conf_path) as conf_fd:
+            self._configuration = Configuration.from_multipathd_conf(conf_fd.read())
 
     def handle_incomming_message(self, message):
         self._handled_messages.append(message)
         if message == 'reconfigure':
+            self._load_configuration()
             return 'ok\n'
+        if message == 'show config':
+            return self._configuration.to_multipathd_conf()
+
+    def __del__(self):
+        from os import remove
+        try:
+            remove(self._conf_path)
+        except:
+            pass
+        super(Simulator, self).__del__()
 
 class Singleton(object):
     _instance = None
@@ -63,5 +92,9 @@ class Singleton(object):
     @classmethod
     def __new__(cls, *args, **kwargs): #pylint: disable-msg=W0613
         if not cls._instance:
-            cls._instance = Simulator()
+            from tempfile import mkstemp
+            from os import close
+            fd, fpath = mkstemp()
+            close(fd)
+            cls._instance = Simulator(fpath)
         return cls._instance

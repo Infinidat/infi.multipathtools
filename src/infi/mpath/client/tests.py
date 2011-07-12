@@ -187,6 +187,15 @@ class MultipathClientTestCase(unittest.TestCase):
     def test_rescan(self):
         self.client.rescan()
 
+    def test_get_config(self):
+        from ..config import Configuration
+        config = self.client.get_multipathd_conf()
+        self.assertIsInstance(config, Configuration)
+
+    def test_write_config(self):
+        config = self.client.get_multipathd_conf()
+        self.client.write_to_multipathd_conf(config)
+
 class MutipathClientSimulatorTestCase(MultipathClientTestCase):
     def setUp(self):
         from ..simulator import SimulatorConnection, Singleton
@@ -196,5 +205,13 @@ class MutipathClientSimulatorTestCase(MultipathClientTestCase):
         self.simulator = Singleton()
 
     def test_rescan(self):
-        MultipathClientTestCase.test_rescan(self)
+        super(MutipathClientSimulatorTestCase, self).test_rescan()
         self.assertIn('reconfigure', self.simulator._handled_messages)
+
+    def test_get_config(self):
+        super(MutipathClientSimulatorTestCase, self).test_get_config()
+        self.assertIn('show config', self.simulator._handled_messages)
+
+    def test_write_config(self):
+        config = self.client.get_multipathd_conf()
+        self.client.write_to_multipathd_conf(config, self.simulator._conf_path)
