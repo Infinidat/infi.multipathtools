@@ -14,20 +14,52 @@ MOCK_OUTPUT = {'v0.4.9':
                }
                }
 
-from . import parse_paths_table
+# TODO add a mock that has more than one path per multipath
+
+from . import parse_paths_table, parse_multipaths_topology
+from . import get_list_of_multipath_devices_from_multipathd_output
+from ..dtypes import MultipathDevice, Path
 
 class PathTableTestCase(unittest.TestCase):
     def test_parser__1(self):
         subject = MOCK_OUTPUT['v0.4.7']['show paths']
         matches = [match for match in parse_paths_table(subject)]
         self.assertEqual(len(matches), 4)
+        # TODO add more asserts to verify content
 
     def test_parser__2(self):
         subject = MOCK_OUTPUT['v0.4.8']['show paths']
         matches = [match for match in parse_paths_table(subject)]
         self.assertEqual(len(matches), 4)
+        # TODO add more asserts to verify content
 
     def test_parser__3(self):
         subject = MOCK_OUTPUT['v0.4.9']['show paths']
         matches = [match for match in parse_paths_table(subject)]
         self.assertEqual(len(matches), 4)
+        # TODO add more asserts to verify content
+
+class MultipathsTopologyTestCase(unittest.TestCase):
+    def test_parser__1(self):
+        subject = MOCK_OUTPUT['v0.4.7']['show multipaths topology']
+        matches = [match for match in parse_multipaths_topology(subject)]
+        self.assertEqual(len(matches), 3)
+
+class ModelTestCase(unittest.TestCase):
+    def test_example__1(self):
+        output = MOCK_OUTPUT['v0.4.7']
+        maps_topology = output['show multipaths topology']
+        paths_table = output['show paths']
+        devices = get_list_of_multipath_devices_from_multipathd_output(maps_topology, paths_table)
+        self.assertEqual(len(devices), 3)
+        [self.assertIsInstance(item, MultipathDevice) for item in devices]
+        self.assertEquals([item.id for item in devices], ['36000402001f45eb56424ca6800000000',
+                                                          '36000402001f45eb566e79f6d00000000',
+                                                          '36000402001f45eb566e79fb700000000'])
+        for device in devices:
+            [self.assertIsInstance(item, Path) for item in device.paths]
+            self.assertIn([path.id for path in device.paths], [['sdb'], ['sdc'], ['sdd']])
+        # TODO add more asserts to verify content
+
+    # TODO add more tests on the rest of hte examples
+    # TODO add more tests on devices with more than one path

@@ -70,16 +70,17 @@ class HCTL(HCT):
         return self._value.l
 
 class MultipathDevice(object):
-    def __init__(self, device_name):
+    def __init__(self, id, device_name):
         super(MultipathDevice, self).__init__()
         self.paths = []
         self.id = id
+        self.device_name = device_name
         self.load_balancing_policy_name = 'round-robin'
 
 class Path(object):
-    def __init__(self):
-        super(MultipathDevice, self).__init__()
-        self.id = ''
-        self.device_name = ''
-        self.major_minor = (0, 0)
-        self.state = ''
+    def __init__(self, id, device_name, major_minor, state):
+        super(Path, self).__init__()
+        self.id = id
+        self.device_name = device_name
+        self.major_minor = major_minor
+        self.state = state

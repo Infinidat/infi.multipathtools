@@ -58,24 +58,21 @@ class MultipathClient(object):
         with open(filepath, 'w') as fd:
             fd.write(value.to_multipathd_conf())
 
-    def _get_multipath_information(self):
-        from model import get_bunch_from_multipathd_output
+    def get_list_of_multipath_devices(self):
+        from ..model import get_list_of_multipath_devices_from_multipathd_output
         maps_topology = self._send_and_receive("show multipaths topology")
         paths_table = self._send_and_receive("show paths")
-        result = get_bunch_from_multipathd_output(maps_topology, paths_table)
+        result = get_list_of_multipath_devices_from_multipathd_output(maps_topology, paths_table)
         return result
 
-    def get_paths(self):
-        return self._get_multipath_information().paths
+    def fail_path(self, path_id):
+        result = self._send_and_receive("fail path %s" % path_id)
+        if result != 'ok':
+            raise RuntimeError(result) # TODO test this
 
-    def get_multipaths(self):
-        return self._get_multipath_information().multipaths
-
-    def fail_path(self, path):
-        raise NotImplementedError
-
-    def reinstate_path(self, path):
-        raise NotImplementedError
-
+    def reinstate_path(self, path_id):
+        result = self._send_and_receive("reinstate path %s" % path_id)
+        if result != 'ok':
+            raise RuntimeError(result) # TODO test this
 
 __all__ = ('MultipathClient')
