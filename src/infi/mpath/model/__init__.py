@@ -76,3 +76,7 @@ def get_list_of_multipath_devices_from_multipathd_output(maps_topology, paths_ta
             multipath.paths.append(path)
         result.append(multipath)
     return result
+
+def strip_ansi_colors(string):
+    pattern = compile(r"\x1b\[[;\d]*[A-Za-z]", MULTILINE | DOTALL)
+    return pattern.sub("", string)

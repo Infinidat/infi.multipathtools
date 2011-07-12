@@ -29,11 +29,8 @@ class MultipathClient(object):
     def _get_expected_message_size_from_string(self, string):
         return MessageLength.create_instance_from_string(string).length
 
-    def _strip_ansi_colors(self, string):
-        # TODO implement this
-        return string
-
     def _send_and_receive(self, message):
+        from ..model import strip_ansi_colors
         message = "%s\n" % message
         with self._with_connection_open():
             self._connection.send(self._get_message_size_as_string(message))
@@ -41,7 +38,7 @@ class MultipathClient(object):
             stream = self._connection.receive(MessageLength.sizeof())
             expected_length = self._get_expected_message_size_from_string(stream)
             response = self._connection.receive(expected_length)
-            return self._strip_ansi_colors(response.strip('\x00\n'))
+            return strip_ansi_colors(response.strip('\x00\n'))
 
     def rescan(self):
         result = self._send_and_receive("reconfigure")
