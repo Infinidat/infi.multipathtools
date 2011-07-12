@@ -18,7 +18,7 @@ MOCK_OUTPUT = {'v0.4.9':
 
 from . import parse_paths_table, parse_multipaths_topology, strip_ansi_colors
 from . import get_list_of_multipath_devices_from_multipathd_output
-from ..dtypes import MultipathDevice, Path
+from ..dtypes import MultipathDevice, Path, PathGroup
 
 class PathTableTestCase(unittest.TestCase):
     def test_parser__1(self):
@@ -56,9 +56,6 @@ class ModelTestCase(unittest.TestCase):
         self.assertEquals([item.id for item in devices], ['36000402001f45eb56424ca6800000000',
                                                           '36000402001f45eb566e79f6d00000000',
                                                           '36000402001f45eb566e79fb700000000'])
-        for device in devices:
-            [self.assertIsInstance(item, Path) for item in device.paths]
-            self.assertIn([path.id for path in device.paths], [['sdb'], ['sdc'], ['sdd']])
         # TODO add more asserts to verify content
 
     # TODO add more tests on the rest of hte examples
