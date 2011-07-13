@@ -121,13 +121,18 @@ RULELIST_PATTERN = \
 
 MULTIPATH_CONF_PATTERN = \
     r"^(?P<name>defaults|blacklist_exceptions|blacklist|devices|multipaths)" + \
-    " {\n*(?P<content>(:?%s)*|(:?%s)*|(:?%s)*|(:?%s)*)\n*}" % \
-        (r'\s', # empty content
-         r"^[^{}]*$\n", # key-value pairs
+    " {\n*(?P<content>(:?%s)*|(:?%s)*|(:?%s)*|\b|\B)\n*}\n*" % \
+        (r"^[^{}\n]*$\n", # key-value pairs
          r"^\t*(?:device|multipath) {[^{}]*}$\n", # devices
          r"(?:^[^{}]*$\n)|(?:^\t*(?:device|multipath) {[^{}]*}$\n)", # both
          )
 
+"""
+        (r"^[^{}]*$\n", # key-value pairs
+         r"^\t*(?:device|multipath) {[^{}]*}$\n", # devices
+         r"(?:^[^{}]*$\n)|(?:^\t*(?:device|multipath) {[^{}]*}$\n)", # both
+         )
+"""
 class Configuration(object):
     """ container for multipathd.conf
     
