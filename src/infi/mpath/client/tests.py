@@ -40,7 +40,13 @@ class MultipathClientTestCase(unittest.TestCase):
         devices = self.client.get_list_of_multipath_devices()
         path = devices[0].path_groups[0].paths[0]
         self.client.fail_path(path.id)
+        devices = self.client.get_list_of_multipath_devices()
+        path = devices[0].path_groups[0].paths[0]
+        self.assertEqual(path.state, 'failed')
         self.client.reinstate_path(path.id)
+        devices = self.client.get_list_of_multipath_devices()
+        path = devices[0].path_groups[0].paths[0]
+        self.assertEqual(path.state, 'active')
 
 class MutipathClientSimulatorTestCase(MultipathClientTestCase):
     def setUp(self):
@@ -61,3 +67,6 @@ class MutipathClientSimulatorTestCase(MultipathClientTestCase):
     def test_write_config(self):
         config = self.client.get_multipathd_conf()
         self.client.write_to_multipathd_conf(config, self.simulator._conf_path)
+
+    def test_disable_and_reinstante_paths(self):
+        raise unittest.SkipTest
