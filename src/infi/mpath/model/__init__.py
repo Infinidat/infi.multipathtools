@@ -34,7 +34,7 @@ def parse_multipaths_topology(maps_topology):
         r"(?P<dm>dm-\w+) +" \
         r"(?P<vendor>\w+) *,(?P<product>\w+)(?P<rev>.*)\n" + \
         r"(?P<options>.+)\n" + \
-        r"(?P<path_groups>(?:(?:.*[`\\].*\n?)*))"
+        r"(?P<path_groups>(?:(?:.*[\|`\\].*\n?)*))"
     pattern = compile(MULTIPATH_PATTERN, MULTILINE)
     matches = []
     for match in pattern.finditer(maps_topology):
@@ -52,7 +52,7 @@ def parse_path_groups_in_multipath_dict(multipath_dict):
         r" *" + \
         r"(?:status=|\b|\B)" + \
         r"\[?(?P<state>\w+)\]?" + \
-        r"[^\n]\n" + \
+        r" *\n" + \
         r"(?P<paths>(?:(?:.*:.*\n?)*))"
     pattern = compile(PATH_GROUP_PATTERN, MULTILINE)
     matches = []
@@ -86,7 +86,7 @@ def get_list_of_multipath_devices_from_multipathd_output(maps_topology, paths_ta
     result = []
     debug("multipaths = %s", multipaths)
     for mpath_dict in multipaths:
-        multipath = MultipathDevice(mpath_dict['wwid'], mpath_dict.get('alias', mpath_dict['wwid']), mpath_dict['dm'])
+        multipath = MultipathDevice(mpath_dict['wwid'], mpath_dict['alias'] or mpath_dict['wwid'], mpath_dict['dm'])
         for pathgroup_dict in mpath_dict['path_groups']:
             path_group = PathGroup(pathgroup_dict['state'], pathgroup_dict['prio'])
             for path_dict in pathgroup_dict['paths']:

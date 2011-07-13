@@ -1,5 +1,6 @@
 
-class MultipathDevice(object):
+from bunch import Bunch
+class MultipathDevice(Bunch):
     def __init__(self, id, device_name, minor):
         super(MultipathDevice, self).__init__()
         self.path_groups = []
@@ -7,7 +8,7 @@ class MultipathDevice(object):
         self.device_name = device_name
         self.major_minor = '253:%s' % minor.replace('dm-', '')
 
-class PathGroup(object):
+class PathGroup(Bunch):
     def __init__(self, state, priority):
         super(PathGroup, self).__init__()
         self.paths = []
@@ -15,7 +16,7 @@ class PathGroup(object):
         self.priority = priority
         self.load_balancing_policy = 'round-robin'
 
-class Path(object):
+class Path(Bunch):
     def __init__(self, id, device_name, major_minor, state, priority):
         super(Path, self).__init__()
         self.id = id
@@ -23,3 +24,4 @@ class Path(object):
         self.major_minor = major_minor
         self.state = state # active, failed, or undef
         self.priority = priority
+

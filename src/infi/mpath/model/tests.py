@@ -119,7 +119,26 @@ class ModelTestCase(unittest.TestCase):
 
     def test_example__1(self):
         devices = self._get_devices_from_example_by_index(0)
+        actual = devices[0]
+        expected = MultipathDevice('36000402001f45eb566e79f6d00000000',
+                                   '36000402001f45eb566e79f6d00000000',
+                                   '0')
+        expected.path_groups.append(PathGroup('active', '1'))
+        expected.path_groups[0].paths.append(Path('sdc', 'sdc', '8:32', 'active', '1'))
+        self.assertEqual(actual, expected)
+
+    def test_example__4(self):
+        devices = self._get_devices_from_example_by_index(3)
         self.assertEqual(len(devices), 3)
+        actual = devices[0]
+        expected = MultipathDevice('35742b0f006800000',
+                                   'mpatha',
+                                   '0')
+        expected.path_groups.append(PathGroup('active', '1'))
+        expected.path_groups.append(PathGroup('enabled', '1'))
+        expected.path_groups[0].paths.append(Path('sdb', 'sdb', '8:16', 'active', '1'))
+        expected.path_groups[1].paths.append(Path('sdc', 'sdc', '8:32', 'active', '1'))
+        self.assertEqual(actual, expected)
 
 class AnsiColorsTestCase(unittest.TestCase):
     def test_strip(self):
