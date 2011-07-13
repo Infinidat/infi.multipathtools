@@ -2,6 +2,7 @@
 import unittest
 import mock
 from contextlib import contextmanager
+from logging import debug
 
 from ctypes import sizeof, c_size_t
 
@@ -38,14 +39,16 @@ class MultipathClientTestCase(unittest.TestCase):
 
     def test_disable_and_reinstante_paths(self):
         devices = self.client.get_list_of_multipath_devices()
-        path = devices[0].path_groups[0].paths[0]
-        self.client.fail_path(path.id)
+        path_id = devices[0].path_groups[0].paths[0].id
+        self.client.fail_path(path_id)
         devices = self.client.get_list_of_multipath_devices()
         path = devices[0].path_groups[0].paths[0]
+        self.assertEqual(path.id, path_id)
         self.assertEqual(path.state, 'failed')
         self.client.reinstate_path(path.id)
         devices = self.client.get_list_of_multipath_devices()
         path = devices[0].path_groups[0].paths[0]
+        self.assertEqual(path.id, path_id)
         self.assertEqual(path.state, 'active')
 
 class MutipathClientSimulatorTestCase(MultipathClientTestCase):
