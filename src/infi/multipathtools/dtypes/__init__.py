@@ -7,7 +7,7 @@ class MultipathDevice(Bunch):
         self.path_groups = []
         self.id = id
         self.device_name = device_name
-        self.major_minor = ('253:%s' % minor.replace('dm-', '')).split(":")
+        self.major_minor = tuple([int(item) for item in ('253:%s' % minor.replace('dm-', '')).split(":")])
 
 class PathGroup(Bunch):
     def __init__(self, state, priority):
@@ -22,10 +22,10 @@ class Path(Bunch):
         super(Path, self).__init__()
         self.id = id
         self.device_name = device_name
-        self.major_minor = major_minor.split(":")
+        self.major_minor = tuple([int(item) for item in major_minor.split(":")])
         self.state = state # active, failed, or undef
         self.priority = int(priority)
-        self.hctl = hctl.split(":")
+        self.hctl = tuple([int(item) for item in hctl.split(":")])
 
 PATHGROUP_STATES = ['enabled', 'disabled', 'active', 'undef']
 PATH_STATES = ['active', 'failed', 'undef']
