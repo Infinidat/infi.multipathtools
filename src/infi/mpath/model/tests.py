@@ -2,17 +2,23 @@
 import unittest
 import mock
 
-MOCK_OUTPUT = {'v0.4.9':
+MOCK_OUTPUT = [
                {'show multipaths topology': "create: 36000402001f45eb566e79f6d00000000 dm-0 NEXSAN,SATABoy2\nsize=3.7G features='0' hwhandler='0' wp=rw\n`-+- policy='round-robin 0' prio=1 status=active\n  `- 4:0:0:10 sdc 8:32 active ready  running\ncreate: 36000402001f45eb56424ca6800000000 dm-1 NEXSAN,SATABoy2\nsize=466G features='0' hwhandler='0' wp=rw\n`-+- policy='round-robin 0' prio=0 status=active\n  `- 4:0:0:0  sdb 8:16 failed faulty running\ncreate: 36000402001f45eb566e79fb700000000 dm-2 NEXSAN,SATABoy2\nsize=5.6G features='0' hwhandler='0' wp=rw\n`-+- policy='round-robin 0' prio=1 status=active\n  `- 4:0:0:11 sdd 8:48 active ready  running",
-                'show paths': 'hcil     dev dev_t pri dm_st  chk_st dev_st  next_check     \n2:0:0:0  sda 8:0   1   undef  ready  running orphan         \n4:0:0:10 sdc 8:32  1   active ready  running XXXX...... 9/20\n4:0:0:0  sdb 8:16  1   failed faulty running X......... 2/20\n4:0:0:11 sdd 8:48  1   active ready  running XXXX...... 8/20'},
-               'v0.4.8':
+                'show paths': 'hcil     dev dev_t pri dm_st  chk_st dev_st  next_check     \n2:0:0:0  sda 8:0   1   undef  ready  running orphan         \n4:0:0:10 sdc 8:32  1   active ready  running XXXX...... 9/20\n4:0:0:0  sdb 8:16  1   failed faulty running X......... 2/20\n4:0:0:11 sdd 8:48  1   active ready  running XXXX...... 8/20'
+                },
                {'show multipaths topology': 'create: 36000402001f45eb56424ca6800000000dm-0  NEXSAN  ,SATABoy2      \n[size=466G][features=0       ][hwhandler=0        ]\n\\_ round-robin 0 [prio=0][enabled]\n \\_ 5:0:0:0  sdb 8:16  [active][ready]\ncreate: 36000402001f45eb566e79f6d00000000dm-1  NEXSAN  ,SATABoy2      \n[size=3.7G][features=0       ][hwhandler=0        ]\n\\_ round-robin 0 [prio=0][enabled]\n \\_ 5:0:0:10 sdc 8:32  [active][ready]\ncreate: 36000402001f45eb566e79fb700000000dm-2  NEXSAN  ,SATABoy2      \n[size=5.6G][features=0       ][hwhandler=0        ]\n\\_ round-robin 0 [prio=0][enabled]\n \\_ 5:0:0:11 sdd 8:48  [active][ready]',
-                 'show paths': 'hcil     dev dev_t pri dm_st   chk_st  next_check      \n2:0:0:0  sda 8:0   1   [undef] [undef] [orphan]        \n5:0:0:0  sdb 8:16  1   [active][ready] .......... 1/20 \n5:0:0:10 sdc 8:32  1   [active][ready] XXXXXXX... 15/20\n5:0:0:11 sdd 8:48  1   [active][ready] XXXXXXXX.. 17/20'                 },
-               'v0.4.7':
+                 'show paths': 'hcil     dev dev_t pri dm_st   chk_st  next_check      \n2:0:0:0  sda 8:0   1   [undef] [undef] [orphan]        \n5:0:0:0  sdb 8:16  1   [active][ready] .......... 1/20 \n5:0:0:10 sdc 8:32  1   [active][ready] XXXXXXX... 15/20\n5:0:0:11 sdd 8:48  1   [active][ready] XXXXXXXX.. 17/20'
+                },
                {'show multipaths topology': 'create: 36000402001f45eb56424ca6800000000 dm-0  NEXSAN,SATABoy2\n[size=466G][features=0       ][hwhandler=0        ][rw        ]\n\\_ round-robin 0 [prio=0][enabled]\n \\_ 2:0:0:0  sdb 8:16  [active][ready]\ncreate: 36000402001f45eb566e79f6d00000000 dm-1  NEXSAN,SATABoy2\n[size=3.7G][features=0       ][hwhandler=0        ][rw        ]\n\\_ round-robin 0 [prio=0][active]\n \\_ 2:0:0:10 sdc 8:32  [active][ready]\ncreate: 36000402001f45eb566e79fb700000000 dm-2  NEXSAN,SATABoy2\n[size=5.6G][features=0       ][hwhandler=0        ][rw        ]\n\\_ round-robin 0 [prio=0][enabled]\n \\_ 2:0:0:11 sdd 8:48  [active][ready]',
                 'show paths': 'hcil     dev dev_t pri dm_st   chk_st  next_check     \n0:0:0:0  sda 8:0   1   [undef] [ready] [orphan]       \n2:0:0:0  sdb 8:16  1   [active][ready] XXXX...... 9/20\n2:0:0:10 sdc 8:32  1   [active][ready] X......... 2/20\n2:0:0:11 sdd 8:48  1   [active][ready] XXXX...... 9/20'
-               }
-               }
+                },
+               {'show multipaths topology': "mpatha (35742b0f006800000) dm-0 INFINID,Infinidat A01\nsize=10G features='0' hwhandler='0' wp=rw\n|-+- policy='round-robin 0' prio=1 status=active\n| `- 3:0:0:1 sdb 8:16 active ready running\n`-+- policy='round-robin 0' prio=1 status=enabled\n  `- 2:0:0:1 sdc 8:32 active ready running\nmpathb (36000402001f45eb565889a4b00000000) dm-2 NEXSAN,SATABoy2\nsize=47G features='0' hwhandler='0' wp=rw\n|-+- policy='round-robin 0' prio=1 status=active\n| `- 2:0:1:0 sdd 8:48 active ready running\n`-+- policy='round-robin 0' prio=1 status=enabled\n  `- 3:0:1:1 sdf 8:80 active ready running\nmpathc (36000402001f45eb565a24ae100000000) dm-3 NEXSAN,SATABoy2\nsize=466G features='0' hwhandler='0' wp=rw\n`-+- policy='round-robin 0' prio=1 status=active\n  `- 3:0:1:0 sde 8:64 active ready running",
+                'show paths': 'hcil    dev dev_t pri dm_st  chk_st dev_st  next_check      \n4:0:0:0 sda 8:0   1   undef  ready  running orphan          \n3:0:0:1 sdb 8:16  1   active ready  running XXXXXXX... 14/20\n2:0:0:1 sdc 8:32  1   active ready  running XXXXXXXX.. 16/20\n2:0:1:0 sdd 8:48  1   active ready  running XXXXXXXX.. 16/20\n3:0:1:0 sde 8:64  1   active ready  running XXXXXXX... 14/20\n3:0:1:1 sdf 8:80  1   active ready  running XXXXXX.... 13/20'
+                },
+               {'show multipaths topology': "mpatha (35742b0f006800000) dm-0 INFINID,Infinidat A01\nsize=10G features='0' hwhandler='0' wp=rw\n|-+- policy='round-robin 0' prio=1 status=active\n| `- 3:0:0:1 sdb 8:16 active ready running\n`-+- policy='round-robin 0' prio=1 status=enabled\n  `- 2:0:0:1 sdc 8:32 active ready running\nmpathb (36000402001f45eb565889a4b00000000) dm-2 NEXSAN,SATABoy2\nsize=47G features='0' hwhandler='0' wp=rw\n|-+- policy='round-robin 0' prio=1 status=active\n| `- 2:0:1:0 sdd 8:48 active ready running\n`-+- policy='round-robin 0' prio=1 status=enabled\n  `- 3:0:1:1 sdf 8:80 active ready running\nmpathc (36000402001f45eb565a24ae100000000) dm-3 NEXSAN,SATABoy2\nsize=466G features='0' hwhandler='0' wp=rw\n`-+- policy='round-robin 0' prio=1 status=active\n  `- 3:0:1:0 sde 8:64 active ready running",
+                'show paths': 'hcil    dev dev_t pri dm_st  chk_st dev_st  next_check      \n4:0:0:0 sda 8:0   1   undef  ready  running orphan          \n3:0:0:1 sdb 8:16  1   active ready  running XXX....... 6/20 \n2:0:0:1 sdc 8:32  1   active ready  running XX........ 4/20 \n2:0:1:0 sdd 8:48  1   active ready  running XX........ 4/20 \n3:0:1:0 sde 8:64  1   active ready  running X......... 2/20 \n3:0:1:1 sdf 8:80  1   active ready  running XXXXXXXX.. 17/20'
+                }
+               ]
 
 # TODO add a mock that has more than one path per multipath
 
@@ -21,45 +27,99 @@ from . import get_list_of_multipath_devices_from_multipathd_output
 from ..dtypes import MultipathDevice, Path, PathGroup
 
 class PathTableTestCase(unittest.TestCase):
-    def test_parser__1(self):
-        subject = MOCK_OUTPUT['v0.4.7']['show paths']
-        matches = [match for match in parse_paths_table(subject)]
+
+    def _assert_lists(self, a, b):
+        a.sort()
+        b.sort()
+        self.assertEquals(a, b)
+
+    def _validate_example(self, matches):
         self.assertEqual(len(matches), 4)
-        # TODO add more asserts to verify content
+        for hctl in [match['hctl'] for match in matches]:
+            self.assertTrue(len(hctl.split(':')), 4)
+            self.assertTrue([item.isdigit() for item in hctl.split(':')],
+                            [True, ] * 4)
+        self._assert_lists([match['dev'] for match in matches],
+                         ['sda', 'sdc', 'sdb', 'sdd'])
+        self._assert_lists([match['dev_t'] for match in matches],
+                         ['8:0', '8:32', '8:16', '8:48'])
+        for item in [match['dm_st'] for match in matches]:
+            self.assertIn(item, ['active', 'undef', 'failed'])
+        for item in [match['chk_st'] for match in matches]:
+            self.assertIn(item, ['active', 'undef', 'failed', 'ready', 'faulty'])
+
+    def test_parser__1(self):
+        subject = MOCK_OUTPUT[0]['show paths']
+        matches = [match for match in parse_paths_table(subject)]
+        self._validate_example(matches)
 
     def test_parser__2(self):
-        subject = MOCK_OUTPUT['v0.4.8']['show paths']
+        subject = MOCK_OUTPUT[1]['show paths']
         matches = [match for match in parse_paths_table(subject)]
         self.assertEqual(len(matches), 4)
-        # TODO add more asserts to verify content
+        self._validate_example(matches)
 
     def test_parser__3(self):
-        subject = MOCK_OUTPUT['v0.4.9']['show paths']
+        subject = MOCK_OUTPUT[2]['show paths']
         matches = [match for match in parse_paths_table(subject)]
         self.assertEqual(len(matches), 4)
-        # TODO add more asserts to verify content
+        self._validate_example(matches)
+
+    def test_parser__4(self):
+        subject = MOCK_OUTPUT[3]['show paths']
+        matches = [match for match in parse_paths_table(subject)]
+        self.assertEqual(len(matches), 6)
+
+    def test_parser__5(self):
+        subject = MOCK_OUTPUT[4]['show paths']
+        matches = [match for match in parse_paths_table(subject)]
+        self.assertEqual(len(matches), 6)
 
 class MultipathsTopologyTestCase(unittest.TestCase):
+    def _validate_example(self, matches):
+        self.assertEqual(len(matches), 3)
+        self.assertEqual([len(match['path_groups']) for match in matches],
+                         [1] * 3)
+        self.assertEqual([len(match['path_groups'][0]['paths']) for match in matches],
+                         [1] * 3)
+
     def test_parser__1(self):
-        subject = MOCK_OUTPUT['v0.4.7']['show multipaths topology']
+        subject = MOCK_OUTPUT[0]['show multipaths topology']
+        matches = [match for match in parse_multipaths_topology(subject)]
+        self._validate_example(matches)
+
+    def test_parser__2(self):
+        subject = MOCK_OUTPUT[1]['show multipaths topology']
+        matches = [match for match in parse_multipaths_topology(subject)]
+        self.assertEqual(len(matches), 3)
+
+    def test_parser__3(self):
+        subject = MOCK_OUTPUT[2]['show multipaths topology']
+        matches = [match for match in parse_multipaths_topology(subject)]
+        self.assertEqual(len(matches), 3)
+
+    def test_parser__4(self):
+        subject = MOCK_OUTPUT[3]['show multipaths topology']
+        matches = [match for match in parse_multipaths_topology(subject)]
+        self.assertEqual(len(matches), 3)
+
+    def test_parser__5(self):
+        subject = MOCK_OUTPUT[4]['show multipaths topology']
         matches = [match for match in parse_multipaths_topology(subject)]
         self.assertEqual(len(matches), 3)
 
 class ModelTestCase(unittest.TestCase):
-    def test_example__1(self):
-        output = MOCK_OUTPUT['v0.4.7']
+    def _get_devices_from_example_by_index(self, index):
+        output = MOCK_OUTPUT[index]
         maps_topology = output['show multipaths topology']
         paths_table = output['show paths']
         devices = get_list_of_multipath_devices_from_multipathd_output(maps_topology, paths_table)
         self.assertEqual(len(devices), 3)
-        [self.assertIsInstance(item, MultipathDevice) for item in devices]
-        self.assertEquals([item.id for item in devices], ['36000402001f45eb56424ca6800000000',
-                                                          '36000402001f45eb566e79f6d00000000',
-                                                          '36000402001f45eb566e79fb700000000'])
-        # TODO add more asserts to verify content
+        return devices
 
-    # TODO add more tests on the rest of hte examples
-    # TODO add more tests on devices with more than one path
+    def test_example__1(self):
+        devices = self._get_devices_from_example_by_index(0)
+        self.assertEqual(len(devices), 3)
 
 class AnsiColorsTestCase(unittest.TestCase):
     def test_strip(self):

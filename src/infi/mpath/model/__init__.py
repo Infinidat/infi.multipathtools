@@ -28,9 +28,9 @@ def parse_paths_table(paths_table):
 
 def parse_multipaths_topology(maps_topology):
     MULTIPATH_PATTERN = r"^" + \
-        r"(?P<action>\w+): +" + \
+        r"(?:(?P<action>\w+): +|\b|\B)" + \
         r"(?:(?P<alias>[A-Za-z0-9]+) +|\b|\B)" + \
-        r"(?P<wwid>[a-z0-9\(\)]+) +" + \
+        r"(?P<wwid>[a-z0-9\(\)]+) *" + \
         r"(?P<dm>dm-\w+) +" \
         r"(?P<vendor>\w+) *,(?P<product>\w+)(?P<rev>.*)\n" + \
         r"(?P<options>.+)\n" + \
@@ -50,6 +50,7 @@ def parse_path_groups_in_multipath_dict(multipath_dict):
         r"[^\n]*" + \
         r"\[?prio=(?P<prio>\d+)\]?" + \
         r" *" + \
+        r"(?:status=|\b|\B)" + \
         r"\[?(?P<state>\w+)\]?" + \
         r"[^\n]\n" + \
         r"(?P<paths>(?:(?:.*:.*\n?)*))"
