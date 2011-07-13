@@ -37,4 +37,4 @@ src/infi/hello/__version__.py
 .hg/
 
 
-src/infi/mpath/__version__.py
+src/infi/multipathtools/__version__.py
