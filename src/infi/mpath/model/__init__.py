@@ -92,7 +92,7 @@ def get_list_of_multipath_devices_from_multipathd_output(maps_topology, paths_ta
             for path_dict in pathgroup_dict['paths']:
                 path_info = paths_by_mjmn[path_dict['dev_t']]
                 path = Path(path_info['dev'], path_info['dev'], path_info['dev_t'],
-                            path_info['dm_st'], path_info['pri'])
+                            path_info['dm_st'], path_info['pri'], path_info['hctl'])
                 path_group.paths.append(path)
             multipath.path_groups.append(path_group)
         result.append(multipath)

@@ -54,6 +54,15 @@ class Simulator(object):
         self._conf_path = conf_path
         self._write_sample_config_if_empty()
         self._load_configuration()
+        self._load_devices()
+
+    def _load_devices(self):
+        from ..model import tests
+        from ..model import get_list_of_multipath_devices_from_multipathd_output
+        output = tests.MOCK_OUTPUT[-1]
+        maps_topology = output['show multipaths topology']
+        paths_table = output['show paths']
+        self._devices = get_list_of_multipath_devices_from_multipathd_output(maps_topology, paths_table)
 
     def _write_sample_config_if_empty(self):
         from os.path import exists, join, sep, dirname
@@ -70,14 +79,35 @@ class Simulator(object):
         with open(self._conf_path) as conf_fd:
             self._configuration = Configuration.from_multipathd_conf(conf_fd.read())
 
+    def _path_change_state(self, path_id):
+        for device in self._devices:
+            for pathgroup in device.path_groups:
+                for path in pathgroup.paths:
+                    if path.id == path_id:
+                        print 'changing state of %s from %s' % (path_id, path.state)
+                        path.state = 'failed' if path.state == 'active' else 'active'
+
     def handle_incomming_message(self, message):
+        from ..model import tests
         message = message.strip('\n')
         self._handled_messages.append(message)
+        print message
+        if message == 'show config':
+            return self._configuration.to_multipathd_conf()
         if message == 'reconfigure':
             self._load_configuration()
             return 'ok\n'
-        if message == 'show config':
-            return self._configuration.to_multipathd_conf()
+        if message in ['show multipaths topology', 'show paths']:
+            output = tests.MOCK_OUTPUT[-1]
+            return output[message]
+        if message.rsplit(' ', 1)[0] == 'fail path':
+            path_id = message.rsplit(' ', 1)[1]
+            self._path_change_state(path_id)
+            return 'ok\n'
+        if message.rsplit(' ', 1)[0] == 'reinstate path':
+            path_id = message.rsplit(' ', 1)[1]
+            self._path_change_state(path_id)
+            return 'ok\n'
 
     def __del__(self):
         from os import remove
@@ -86,6 +116,9 @@ class Simulator(object):
         except:
             pass
         super(Simulator, self).__del__()
+
+#TODO load some multipaths to simualtor
+#TODO support fail_path, reinstate_path
 
 class Singleton(object):
     _instance = None

@@ -1,40 +1,73 @@
 multipathd> show multipaths topology
-36000402001f45eb56424ca6800000000 dm-0 NEXSAN,SATABoy2
-size=466G features='0' hwhandler='0' wp=rw
+create: 36000402001f45eb566e79f6d00000000 dm-0 NEXSAN,SATABoy2
+size=3.7G features='0' hwhandler='0' wp=rw
 `-+- policy='round-robin 0' prio=1 status=active
-  `- 3:0:0:0 sdb 8:16 active ready running
+  `- 4:0:0:10 sdc 8:32 active ready  running
+create: 36000402001f45eb56424ca6800000000 dm-1 NEXSAN,SATABoy2
+size=466G features='0' hwhandler='0' wp=rw
+`-+- policy='round-robin 0' prio=0 status=active
+  `- 4:0:0:0  sdb 8:16 failed f"aulty running
+create: 36000402001f45eb566e79fb700000000 dm-2 NEXSAN,SATABoy2
+size=5.6G features='0' hwhandler='0' wp=rw
+`-+- policy='round-robin 0' prio=1 status=active
+  `- 4:0:0:11 sdd 8:48 active ready  running
+
 multipathd> show paths
-hcil    dev dev_t pri dm_st  chk_st dev_st  next_check      
-2:0:0:0 sda 8:0   1   undef  ready  running orphan          
-3:0:0:0 sdb 8:16  1   active ready  running XXXXXX.... 13/20
-multipathd> help
+hcil     dev dev_t pri dm_st  chk_st dev_st  next_check     
+2:0:0:0  sda 8:0   1   undef  ready  running orphan         
+4:0:0:10 sdc 8:32  1   active ready  running XXX....... 7/20
+4:0:0:0  sdb 8:16  1   failed faulty running .......... 1/20
+4:0:0:11 sdd 8:48  1   active ready  running XXX....... 6/20
+multipathd> show
 multipath-tools v0.4.9 (04/04, 2009)
 
-
-multipathd> show multipaths topology
+multipathd> show maps top
 create: 36000402001f45eb56424ca6800000000dm-0  NEXSAN  ,SATABoy2      
 [size=466G][features=0       ][hwhandler=0        ]
 \_ round-robin 0 [prio=0][enabled]
- \_ 4:0:0:0 sdb 8:16  [active][ready]
+ \_ 5:0:0:0  sdb 8:16  [active][ready]
+create: 36000402001f45eb566e79f6d00000000dm-1  NEXSAN  ,SATABoy2      
+[size=3.7G][features=0       ][hwhandler=0        ]
+\_ round-robin 0 [prio=0][enabled]
+ \_ 5:0:0:10 sdc 8:32  [active][ready]
+create: 36000402001f45eb566e79fb700000000dm-2  NEXSAN  ,SATABoy2      
+[size=5.6G][features=0       ][hwhandler=0        ]
+\_ round-robin 0 [prio=0][enabled]
+ \_ 5:0:0:11 sdd 8:48  [active][ready]
+
 multipathd> show paths
-hcil    dev dev_t pri dm_st   chk_st  next_check      
-2:0:0:0 sda 8:0   1   [undef] [undef] [orphan]        
-4:0:0:0 sdb 8:16  1   [active][ready] XXXXXXXX.. 17/20
-multipathd> help
+hcil     dev dev_t pri dm_st   chk_st  next_check      
+2:0:0:0  sda 8:0   1   [undef] [undef] [orphan]        
+5:0:0:0  sdb 8:16  1   [active][ready] X......... 3/20 
+5:0:0:10 sdc 8:32  1   [active][ready] XXXXXXXXX. 18/20
+5:0:0:11 sdd 8:48  1   [active][ready] XXXXXXXXXX 20/20
+multipathd> show ver
 multipath-tools v0.4.8 (08/02, 2007)
 
-multipathd> show multipaths topology
+multipathd> show maps topo
 create: 36000402001f45eb56424ca6800000000 dm-0  NEXSAN,SATABoy2
 [size=466G][features=0       ][hwhandler=0        ][rw        ]
+\_ round-robin 0 [prio=0][enabled]
+ \_ 2:0:0:0  sdb 8:16  [active][ready]
+create: 36000402001f45eb566e79f6d00000000 dm-1  NEXSAN,SATABoy2
+[size=3.7G][features=0       ][hwhandler=0        ][rw        ]
 \_ round-robin 0 [prio=0][active]
- \_ 1:0:0:0 sdb 8:16  [active][ready]
+ \_ 2:0:0:10 sdc 8:32  [active][ready]
+create: 36000402001f45eb566e79fb700000000 dm-2  NEXSAN,SATABoy2
+[size=5.6G][features=0       ][hwhandler=0        ][rw        ]
+\_ round-robin 0 [prio=0][enabled]
+ \_ 2:0:0:11 sdd 8:48  [active][ready]
+
 multipathd> show paths
-hcil    dev dev_t pri dm_st   chk_st  next_check     
-0:0:0:0 sda 8:0   1   [undef] [ready] [orphan]       
-1:0:0:0 sdb 8:16  1   [active][ready] X......... 3/20
-multipathd> help
+hcil     dev dev_t pri dm_st   chk_st  next_check      
+0:0:0:0  sda 8:0   1   [undef] [ready] [orphan]        
+2:0:0:0  sdb 8:16  1   [active][ready] XXXXXXXXX. 18/20
+2:0:0:10 sdc 8:32  1   [active][ready] XX........ 1/5  
+2:0:0:11 sdd 8:48  1   [active][ready] XXXXXXXXX. 18/20
+multipathd> show v
 fail
 multipath-tools v0.4.7 (03/12, 2006)
+
 
 
 ----

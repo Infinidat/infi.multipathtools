@@ -43,7 +43,7 @@ class MultipathClient(object):
     def rescan(self):
         result = self._send_and_receive("reconfigure")
         if result != 'ok':
-            raise RuntimeError(result) # TODO test this
+            raise RuntimeError(result) #pragma: no-cover
 
     def get_multipathd_conf(self):
         from ..config import Configuration
@@ -65,11 +65,11 @@ class MultipathClient(object):
     def fail_path(self, path_id):
         result = self._send_and_receive("fail path %s" % path_id)
         if result != 'ok':
-            raise RuntimeError(result) # TODO test this
+            raise RuntimeError(result) #pragma: no-cover
 
     def reinstate_path(self, path_id):
         result = self._send_and_receive("reinstate path %s" % path_id)
-        if result != 'ok':
-            raise RuntimeError(result) # TODO test this
+        if result != 'ok': #pragma: no-cover
+            raise RuntimeError(result) #pragma: no-cover
 
 __all__ = ('MultipathClient')

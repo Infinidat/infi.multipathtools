@@ -17,11 +17,11 @@ class PathGroup(Bunch):
         self.load_balancing_policy = 'round-robin'
 
 class Path(Bunch):
-    def __init__(self, id, device_name, major_minor, state, priority):
+    def __init__(self, id, device_name, major_minor, state, priority, hctl):
         super(Path, self).__init__()
         self.id = id
         self.device_name = device_name
         self.major_minor = major_minor
         self.state = state # active, failed, or undef
         self.priority = priority
-
+        self.hctl = hctl

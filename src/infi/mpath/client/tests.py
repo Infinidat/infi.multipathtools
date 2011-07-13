@@ -33,6 +33,15 @@ class MultipathClientTestCase(unittest.TestCase):
         config = self.client.get_multipathd_conf()
         self.client.write_to_multipathd_conf(config)
 
+    def test_get_devices(self):
+        devices = self.client.get_list_of_multipath_devices()
+
+    def test_disable_and_reinstante_paths(self):
+        devices = self.client.get_list_of_multipath_devices()
+        path = devices[0].path_groups[0].paths[0]
+        self.client.fail_path(path.id)
+        self.client.reinstate_path(path.id)
+
 class MutipathClientSimulatorTestCase(MultipathClientTestCase):
     def setUp(self):
         from ..simulator import SimulatorConnection, Singleton
