@@ -139,6 +139,7 @@ class ModelTestCase(unittest.TestCase):
         expected.path_groups[1].paths.append(Path('sdc', 'sdc', '8:32', 'active', '1',
                                                   '2:0:0:1'))
         self.assertEqual(actual, expected)
+        self.assertEqual(actual.path_groups[0].paths[0].hctl, (3, 0, 0, 1))
 
     def test_example__5(self):
         devices = self._get_devices_from_example_by_index(4)
