@@ -101,3 +101,8 @@ def get_list_of_multipath_devices_from_multipathd_output(maps_topology, paths_ta
 def strip_ansi_colors(string):
     pattern = compile(r"\x1b\[[;\d]*[A-Za-z]", MULTILINE | DOTALL)
     return pattern.sub("", string)
+
+def parse_multipath_tools_version(string):
+    pattern = compile(r"^multipath-tools v(?P<version>[0-9\.]+)", MULTILINE)
+    match = pattern.search(string)
+    return match.groupdict()['version']

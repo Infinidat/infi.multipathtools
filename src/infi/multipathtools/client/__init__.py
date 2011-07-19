@@ -72,4 +72,10 @@ class MultipathClient(object):
         if result != 'ok': #pragma: no-cover
             raise RuntimeError(result) #pragma: no-cover
 
+    def get_version(self):
+        from ..model import parse_multipath_tools_version
+        result = self._send_and_receive("?")
+        version_string = parse_multipath_tools_version(result)
+        return [int(item) for item in version_string.split(".")]
+
 __all__ = ('MultipathClient')

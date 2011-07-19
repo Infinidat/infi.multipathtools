@@ -108,6 +108,9 @@ class Simulator(object):
             path_id = message.rsplit(' ', 1)[1]
             self._path_change_state(path_id)
             return 'ok\n'
+        if message.rsplit(' ', 1)[0] == '?':
+            from ..model.tests import VERSION_OUTPUT
+            return VERSION_OUTPUT[0]
 
     def __del__(self):
         from os import remove

@@ -1,5 +1,5 @@
 
-import unittest
+from infi import unittest
 import mock
 
 MOCK_OUTPUT = [
@@ -159,3 +159,34 @@ class AnsiColorsTestCase(unittest.TestCase):
         expected = "\n".join(["create: 36000402001f45eb566e79f6d00000000 dm-0 NEXSAN,SATABoy2"] * 4)
         actual = strip_ansi_colors(subject)
         self.assertEqual(actual, expected)
+
+VERSION_OUTPUT = ["""multipath-tools v0.4.8 (08/02, 2007)
+CLI commands reference:
+ list|show paths
+ list|show maps|multipaths
+ list|show maps|multipaths status
+ list|show maps|multipaths stats
+ list|show maps|multipaths topology
+ list|show topology""",
+
+ """multipath-tools v0.4.9 (04/04, 2009)
+CLI commands reference:
+ list|show paths
+ list|show paths format $format
+ list|show status""",
+
+ """fail
+multipath-tools v0.4.7 (03/12, 2006)
+CLI commands reference:
+ list|show paths
+ list|show maps|multipaths
+ list|show maps|multipaths status
+ list|show maps|multipaths stats"""]
+
+class ParseVersionTestCase(unittest.TestCase):
+    @unittest.parameters.iterate("output", VERSION_OUTPUT)
+    def test_parse_version(self, output):
+        from . import parse_multipath_tools_version
+        actual = parse_multipath_tools_version(output)
+        expected = ["0.4.8", "0.4.9", "0.4.7"]
+        self.assertIn(actual, expected)

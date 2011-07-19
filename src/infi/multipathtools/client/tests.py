@@ -76,3 +76,8 @@ class MutipathClientSimulatorTestCase(MultipathClientTestCase):
 
     def test_disable_and_reinstante_paths(self):
         raise unittest.SkipTest
+
+    def test_get_version(self):
+        actual = self.client.get_version()
+        expected = [0, 4, 8]
+        self.assertEqual(actual, expected)
