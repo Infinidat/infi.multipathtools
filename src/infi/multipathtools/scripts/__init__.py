@@ -7,5 +7,5 @@ def print_config():
 def print_maps():
     from ..client import MultipathClient
     client = MultipathClient()
-    return client._send_and_receive("show multipaths topology")
-    return client._send_and_receive("show paths")
+    print client._send_and_receive("show multipaths topology")
+    print client._send_and_receive("show paths")
