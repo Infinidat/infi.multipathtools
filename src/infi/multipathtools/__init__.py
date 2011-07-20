@@ -29,7 +29,9 @@ If you'll real the soruce-code of multipathd, you'll see it supports a ascii-bas
 passing betweeen he daemon and a cleitn, which is 'multipathd -k', 
 and the communication is over a unix domain socket.
 This is not ideal, but its not worse than parsing the output of multipath -l.
+
+
 """
 
-from client import MultipathClient
-from dtypes import PATH_STATES, PATHGROUP_STATES
+from .client import MultipathClient
+from .dtypes import PATH_STATES, PATHGROUP_STATES

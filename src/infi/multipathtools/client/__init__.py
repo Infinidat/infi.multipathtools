@@ -9,6 +9,9 @@ DEFAULT_CONF_FILE = join(sep, 'etc', 'multipath.conf')
 from ..connection import MessageLength, UnixDomainSocket
 
 class MultipathClient(object):
+    """ Client to the multipath-tools daemon
+    """
+
     def __init__(self, connection=UnixDomainSocket()):
         super(MultipathClient, self).__init__() #pragma: no cover
         self._connection = connection
@@ -46,16 +49,23 @@ class MultipathClient(object):
             raise RuntimeError(result) #pragma: no-cover
 
     def get_multipathd_conf(self):
+        """ retreive multipathd.conf
+        """
         from ..config import Configuration
         return Configuration.from_multipathd_conf(self._send_and_receive("show config"))
 
     def write_to_multipathd_conf(self, value, filepath=DEFAULT_CONF_FILE):
+        """ save configuration to multipathd.conf file
+        in order for the configuration to take affect, call reload()
+        """
         from ..config import Configuration
         assert isinstance(value, Configuration)
         with open(filepath, 'w') as fd:
             fd.write(value.to_multipathd_conf())
 
     def get_list_of_multipath_devices(self):
+        """ returns a list of mulipath devices and their attributes, as seen from multipathd
+        """
         from ..model import get_list_of_multipath_devices_from_multipathd_output
         maps_topology = self._send_and_receive("show multipaths topology")
         paths_table = self._send_and_receive("show paths")
