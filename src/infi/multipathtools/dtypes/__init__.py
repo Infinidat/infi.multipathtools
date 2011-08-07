@@ -15,6 +15,7 @@ class PathGroup(Bunch):
         self.paths = []
         self.state = state # enabled, disabled, active, undef
         self.priority = int(priority)
+        # TODO add support for service-time and queue-length that were recently added
         self.load_balancing_policy = 'round-robin'
 
 class Path(Bunch):
