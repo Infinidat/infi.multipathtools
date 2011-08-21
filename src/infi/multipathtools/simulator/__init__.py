@@ -38,9 +38,9 @@ class SimulatorConnection(BaseConnection):
             raise SimulatorError
         if not self._sent_message_size:
             self._sent_message_size = True
-            instance = MessageLength.create()
+            instance = MessageLength()
             instance.length = len(self._message_to_return)
-            return MessageLength.instance_to_string(instance)
+            return MessageLength.write_to_string(instance)
         else:
             return self._message_to_return
 

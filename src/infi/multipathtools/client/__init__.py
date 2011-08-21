@@ -25,9 +25,9 @@ class MultipathClient(object):
             self._connection.disconnect()
 
     def _get_message_size_as_string(self, message):
-        instance = MessageLength.create()
+        instance = MessageLength()
         instance.length = len(message)
-        return MessageLength.instance_to_string(instance)
+        return MessageLength.write_to_string(instance)
 
     def _get_expected_message_size_from_string(self, string):
         return MessageLength.create_instance_from_string(string).length
