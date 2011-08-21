@@ -27,7 +27,7 @@ class SimulatorConnection(BaseConnection):
 
     def send(self, message):
         if self._expecting_length:
-            self._expected_length = MessageLength.create_instance_from_string(message).length
+            self._expected_length = MessageLength.create_from_string(message).length
             self._expecting_length = False
         else:
             assert len(message) == self._expected_length

@@ -30,7 +30,7 @@ class MultipathClient(object):
         return MessageLength.write_to_string(instance)
 
     def _get_expected_message_size_from_string(self, string):
-        return MessageLength.create_instance_from_string(string).length
+        return MessageLength.create_from_string(string).length
 
     def _send_and_receive(self, message):
         from ..model import strip_ansi_colors
