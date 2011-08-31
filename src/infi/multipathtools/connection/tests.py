@@ -98,9 +98,9 @@ class MockUnixDomainSocketTestCase(UnixDomainSocketTestCase):
         from . import MessageLength
         message_to_send = 'abcd' * 2048
         self.connection.connect()
-        instance = MessageLength.create()
+        instance = MessageLength()
         instance.length = len(message_to_send)
-        self.connection.send(MessageLength.instance_to_string(instance))
+        self.connection.send(MessageLength.write_to_string(instance))
         self.connection.send(message_to_send)
         self.assertEquals(self.connection.receive(2048), 'a' * 2048)
         self.connection.disconnect()

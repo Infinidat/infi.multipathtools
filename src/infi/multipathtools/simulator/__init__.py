@@ -27,7 +27,7 @@ class SimulatorConnection(BaseConnection):
 
     def send(self, message):
         if self._expecting_length:
-            self._expected_length = MessageLength.create_instance_from_string(message).length
+            self._expected_length = MessageLength.create_from_string(message).length
             self._expecting_length = False
         else:
             assert len(message) == self._expected_length
@@ -38,9 +38,9 @@ class SimulatorConnection(BaseConnection):
             raise SimulatorError
         if not self._sent_message_size:
             self._sent_message_size = True
-            instance = MessageLength.create()
+            instance = MessageLength()
             instance.length = len(self._message_to_return)
-            return MessageLength.instance_to_string(instance)
+            return MessageLength.write_to_string(instance)
         else:
             return self._message_to_return
 
@@ -108,6 +108,9 @@ class Simulator(object):
             path_id = message.rsplit(' ', 1)[1]
             self._path_change_state(path_id)
             return 'ok\n'
+        if message.rsplit(' ', 1)[0] == '?':
+            from ..model.tests import VERSION_OUTPUT
+            return VERSION_OUTPUT[0]
 
     def __del__(self):
         from os import remove
