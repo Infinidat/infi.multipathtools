@@ -25,6 +25,9 @@ class MultipathClientTestCase(unittest.TestCase):
     def test_rescan(self):
         self.client.rescan()
 
+    def test_is_running(self):
+        self.assertTrue(self.client.is_running())
+
     def test_get_config(self):
         from ..config import Configuration
         config = self.client.get_multipathd_conf()

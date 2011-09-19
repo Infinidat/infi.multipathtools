@@ -24,6 +24,15 @@ class MultipathClient(object):
         finally:
             self._connection.disconnect()
 
+    def is_running(self):
+        try:
+            with self._with_connection_open():
+                pass
+            return True
+        except ConnectionError:
+            pass
+        return False
+
     def _get_message_size_as_string(self, message):
         instance = MessageLength()
         instance.length = len(message)
