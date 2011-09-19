@@ -80,4 +80,5 @@ class UnixDomainSocket(BaseConnection):
             raise chain(ConnectionError)
 
     def disconnect(self):
-        self._socket.close()
+        if self._socket is not None:
+            self._socket.close()
