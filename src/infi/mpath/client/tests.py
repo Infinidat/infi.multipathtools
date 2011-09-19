@@ -187,6 +187,9 @@ class MultipathClientTestCase(unittest.TestCase):
     def test_rescan(self):
         self.client.rescan()
 
+    def test_is_running(self):
+        self.assertTrue(self.client.is_running())
+
 class MutipathClientSimulatorTestCase(MultipathClientTestCase):
     def setUp(self):
         from ..simulator import SimulatorConnection, Singleton

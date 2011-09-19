@@ -80,7 +80,8 @@ class UnixDomainSocket(BaseConnection):
             raise chain(ConnectionError)
 
     def disconnect(self):
-        self._socket.close()
+        if self._socket is not None:
+            self._socket.close()
 
 from contextlib import contextmanager, nested
 from logging import debug, exception
@@ -106,6 +107,15 @@ class MultipathClient(object):
             yield
         finally:
             self._connection.disconnect()
+
+    def is_running(self):
+        try:
+            with self._with_connection_open():
+                pass
+            return True
+        except ConnectionError:
+            pass
+        return False
 
     def _get_message_size_as_string(self, message):
         instance = MessageLength.create()
