@@ -181,7 +181,7 @@ class Configuration(object):
             strings.append('\t}')
         strings.append('}')
         strings.append('multipaths {')
-        for multipath in self.devices:
+        for multipath in self.multipaths:
             strings.append('\tmultipath {')
             strings.extend(['\t\t%s' % line for line in bunch_to_multipath_conf(multipath).splitlines()])
             strings.append('\t}')
