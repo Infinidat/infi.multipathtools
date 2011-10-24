@@ -67,7 +67,8 @@ from re import compile, DOTALL, MULTILINE
 from . import KEY_VALUE_PATTERN, MULTIPATH_CONF_PATTERN
 
 from os.path import exists, join, sep, abspath, dirname
-SAMPLE_FILEPATH = abspath(join(dirname(__file__), "sample.txt"))
+from pkg_resources import resource_filename
+SAMPLE_FILEPATH = resource_filename(__name__, "sample.txt")
 
 
 class InputTests(TestCase):
