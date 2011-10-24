@@ -112,14 +112,6 @@ class Simulator(object):
             from ..model.tests import VERSION_OUTPUT
             return VERSION_OUTPUT[0]
 
-    def __del__(self):
-        from os import remove
-        try:
-            remove(self._conf_path)
-        except:
-            pass
-        super(Simulator, self).__del__()
-
 #TODO load some multipaths to simualtor
 #TODO support fail_path, reinstate_path
 
