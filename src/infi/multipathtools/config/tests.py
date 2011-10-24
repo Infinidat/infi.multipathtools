@@ -67,7 +67,8 @@ from re import compile, DOTALL, MULTILINE
 from . import KEY_VALUE_PATTERN, MULTIPATH_CONF_PATTERN
 
 from os.path import exists, join, sep, abspath, dirname
-SAMPLE_FILEPATH = abspath(join(dirname(__file__), "sample.txt"))
+from pkg_resources import resource_filename
+SAMPLE_FILEPATH = resource_filename(__name__, "sample.txt")
 
 
 class InputTests(TestCase):
@@ -179,10 +180,10 @@ class InputTests(TestCase):
         self.assertEqual(config.blacklist.device[0].product, "MSA[15]00")
         self.assertIn('"IBM.75000000092461.4d00.36"', config.whitelist.wwid)
         self.assertEqual(len(config.devices), 2)
-        self.assertEqual(config.devices[0].wwid, "3600508b4000156d700012000000b0000")
-        self.assertEqual(config.devices[0].failback, "manual")
+        self.assertEqual(config.multipaths[0].wwid, "3600508b4000156d700012000000b0000")
+        self.assertEqual(config.multipaths[0].failback, "manual")
         self.assertEqual(len(config.multipaths), 2)
-        self.assertEqual(config.multipaths[1].path_grouping_policy, "multibus")
+        self.assertEqual(config.devices[1].path_grouping_policy, "multibus")
 
 class InOut(TestCase):
     def test_sample_configuration(self):

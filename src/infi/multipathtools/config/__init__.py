@@ -175,13 +175,13 @@ class Configuration(object):
         strings.extend(['\t%s' % line for line in self.whitelist.to_multipathd_conf().splitlines()])
         strings.append('}')
         strings.append('devices {')
-        for device in self.multipaths:
+        for device in self.devices:
             strings.append('\tdevice {')
             strings.extend(['\t\t%s' % line for line in bunch_to_multipath_conf(device).splitlines()])
             strings.append('\t}')
         strings.append('}')
         strings.append('multipaths {')
-        for multipath in self.devices:
+        for multipath in self.multipaths:
             strings.append('\tmultipath {')
             strings.extend(['\t\t%s' % line for line in bunch_to_multipath_conf(multipath).splitlines()])
             strings.append('\t}')
@@ -221,9 +221,9 @@ class Configuration(object):
             elif name == 'blacklist_exceptions':
                 instance.whitelist = RuleList.from_multipathd_conf(content)
             elif name == 'devices':
-                populate_list(instance.multipaths, HardwareEntry, content)
+                populate_list(instance.devices, HardwareEntry, content)
             elif name == 'multipaths':
-                populate_list(instance.devices, MultipathEntry, content)
+                populate_list(instance.multipaths, MultipathEntry, content)
 
         return instance
 
