@@ -2,6 +2,8 @@
 from infi import unittest
 import mock
 
+#pylint: disable-all
+
 MOCK_OUTPUT = [
                {'show multipaths topology': "create: 36000402001f45eb566e79f6d00000000 dm-0 NEXSAN,SATABoy2\nsize=3.7G features='0' hwhandler='0' wp=rw\n`-+- policy='round-robin 0' prio=1 status=active\n  `- 4:0:0:10 sdc 8:32 active ready  running\ncreate: 36000402001f45eb56424ca6800000000 dm-1 NEXSAN,SATABoy2\nsize=466G features='0' hwhandler='0' wp=rw\n`-+- policy='round-robin 0' prio=0 status=active\n  `- 4:0:0:0  sdb 8:16 failed faulty running\ncreate: 36000402001f45eb566e79fb700000000 dm-2 NEXSAN,SATABoy2\nsize=5.6G features='0' hwhandler='0' wp=rw\n`-+- policy='round-robin 0' prio=1 status=active\n  `- 4:0:0:11 sdd 8:48 active ready  running",
                 'show paths': 'hcil     dev dev_t pri dm_st  chk_st dev_st  next_check     \n2:0:0:0  sda 8:0   1   undef  ready  running orphan         \n4:0:0:10 sdc 8:32  1   active ready  running XXXX...... 9/20\n4:0:0:0  sdb 8:16  1   failed faulty running X......... 2/20\n4:0:0:11 sdd 8:48  1   active ready  running XXXX...... 8/20'
