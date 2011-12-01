@@ -3,6 +3,7 @@
 
 from os.path import sep, join
 from contextlib import contextmanager
+from ..errors import ConnectionError
 
 DEFAULT_CONF_FILE = join(sep, 'etc', 'multipath.conf')
 

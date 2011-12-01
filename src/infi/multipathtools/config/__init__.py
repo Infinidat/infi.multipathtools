@@ -1,4 +1,6 @@
-from logging import debug
+from logging import getLogger
+log = getLogger()
+debug = log.debug
 
 DEV_NONE = 0
 DEV_DEVT = 1

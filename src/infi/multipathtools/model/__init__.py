@@ -1,7 +1,10 @@
 
 from bunch import Bunch
-from logging import debug
+from logging import getLogger
 from re import compile, MULTILINE, DOTALL
+
+log = getLogger()
+debug = log.debug
 
 HCTL = r'\d+:\d+:\d+:\d+'
 DEV = r'\w+'

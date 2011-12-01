@@ -39,7 +39,9 @@ def get_list_of_live_modules():
         return [line.split()[0] for line in modules.readlines()]
 
 def execute(command):
-    from logging import debug
+    from logging import getLogger
+    log = getLogger()
+    debug = log.debug
     from infi.execute import execute as _execute
     debug('executing %s', command)
     try:
