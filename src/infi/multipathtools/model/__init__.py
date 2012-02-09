@@ -93,7 +93,11 @@ def get_list_of_multipath_devices_from_multipathd_output(maps_topology, paths_ta
         for pathgroup_dict in mpath_dict['path_groups']:
             path_group = PathGroup(pathgroup_dict['state'], pathgroup_dict['prio'])
             for path_dict in pathgroup_dict['paths']:
-                path_info = paths_by_mjmn[path_dict['dev_t']]
+                mjmn = path_dict['dev_t']
+                if mjmn not in paths_by_mjmn.keys():
+                    log.debug("There is no path for major:minor {}, only for {}".format(mjmn, paths_by_mjmn))
+                    continue
+                path_info = paths_by_mjmn[mjmn]
                 path = Path(path_info['dev'], path_info['dev'], path_info['dev_t'],
                             path_info['dm_st'], path_info['pri'], path_info['hctl'])
                 path_group.paths.append(path)
