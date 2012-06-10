@@ -65,15 +65,19 @@ class UnixDomainSocket(BaseConnection):
         if bytes_sent < len(message):
             self.send(message[bytes_sent:])
 
+    def _receive(self, expected_length=MAX_SIZE):
+        received_string = ''
+        remaining_length = expected_length
+        while remaining_length > 0:
+            unit_length = MAX_SIZE if remaining_length > MAX_SIZE else remaining_length
+            received_string += self._socket.recv(unit_length)
+            remaining_length = expected_length - len(received_string)
+        return received_string
+
     def receive(self, expected_length=MAX_SIZE):
         from socket import timeout, error
-        if expected_length > MAX_SIZE:
-            return self.receive(MAX_SIZE) + self.receive(expected_length - MAX_SIZE)
         try:
-            received_string = self._socket.recv(expected_length)
-            if len(received_string) < expected_length:
-                received_string += self.receive(expected_length - len(received_string))
-            return received_string
+            return self._receive(expected_length)
         except timeout:
             raise chain(TimeoutExpired)
         except error:

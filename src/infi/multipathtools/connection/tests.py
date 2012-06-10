@@ -119,7 +119,7 @@ class MockUnixDomainSocketTestCase(UnixDomainSocketTestCase):
             socket.return_value.recv.side_effect = recv_mock
             self._test_send_and_receive_long_messages()
         self.assertEquals(socket.return_value.send.call_count, 18)
-        self.assertEquals(socket.return_value.recv.call_count, 72)
+        self.assertEquals(socket.return_value.recv.call_count, 23)
 
     def test_connect__init_raises_exception(self):
         from socket import error
