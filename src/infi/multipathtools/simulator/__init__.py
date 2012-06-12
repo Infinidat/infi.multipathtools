@@ -59,10 +59,13 @@ class Simulator(object):
     def _load_devices(self):
         from ..model import tests
         from ..model import get_list_of_multipath_devices_from_multipathd_output
+        from mock import patch
+        import __builtin__
         output = tests.MOCK_OUTPUT[-1]
         maps_topology = output['show multipaths topology']
         paths_table = output['show paths']
-        self._devices = get_list_of_multipath_devices_from_multipathd_output(maps_topology, paths_table)
+        with patch.object(__builtin__, "open"):
+            self._devices = get_list_of_multipath_devices_from_multipathd_output(maps_topology, paths_table)
 
     def _write_sample_config_if_empty(self):
         from os.path import exists, join, sep, dirname

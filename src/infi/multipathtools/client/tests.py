@@ -38,7 +38,9 @@ class MultipathClientTestCase(unittest.TestCase):
         self.client.write_to_multipathd_conf(config)
 
     def test_get_devices(self):
-        devices = self.client.get_list_of_multipath_devices()
+        import __builtin__
+        with mock.patch.object(__builtin__, "open"):
+            devices = self.client.get_list_of_multipath_devices()
 
     def test_disable_and_reinstante_paths(self):
         raise unittest.SkipTest
