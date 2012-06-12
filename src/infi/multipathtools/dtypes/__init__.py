@@ -2,12 +2,13 @@
 from bunch import Bunch
 
 class MultipathDevice(Bunch):
-    def __init__(self, id, device_name, minor):
+    def __init__(self, id, device_name, dm_name):
         super(MultipathDevice, self).__init__()
         self.path_groups = []
         self.id = id
         self.device_name = device_name
-        self.major_minor = tuple([int(item) for item in ('253:%s' % minor.replace('dm-', '')).split(":")])
+        with open("/sys/block/{}/dev".format(dm_name)) as fd:
+            self.major_minor = tuple([int(number) for number in fd.read().split(':')])
 
 class PathGroup(Bunch):
     def __init__(self, state, priority):
