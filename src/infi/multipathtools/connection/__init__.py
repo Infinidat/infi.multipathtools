@@ -86,3 +86,10 @@ class UnixDomainSocket(BaseConnection):
     def disconnect(self):
         if self._socket is not None:
             self._socket.close()
+
+    def __repr__(self):
+        try:
+            msg = "<UnixDomainSocket(timeout={}, address={}, socket={})>"
+            return msg.format(self._timeout, self._address, self._socket)
+        except:
+            return super(UnixDomainSocket, self).__repr__()
