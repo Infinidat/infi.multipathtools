@@ -91,6 +91,7 @@ class UnixDomainSocket(BaseConnection):
     def disconnect(self):
         if self._socket is not None:
             self._socket.close()
+        self._socket = None
 
     def __repr__(self):
         try:
