@@ -40,7 +40,7 @@ def get_list_of_live_modules():
 
 def execute(command):
     from logging import getLogger
-    log = getLogger()
+    log = getLogger(__name__)
     debug = log.debug
     from infi.execute import execute as _execute
     debug('executing %s', command)
@@ -155,7 +155,9 @@ class InitScript(EntryPoint):
     def is_running(self):
         from os import listdir
         from os.path import exists, join, sep
-        from logging import debug
+        from logging import getLogger
+        logger = getLogger(__name__)
+        debug = logger.debug
         pid_file = join(sep, 'var', 'run', '%s.pid' % self.process_name)
         if not exists(pid_file):
             debug("did not found pid file %s", pid_file)

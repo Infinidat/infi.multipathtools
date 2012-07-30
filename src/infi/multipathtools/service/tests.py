@@ -195,7 +195,8 @@ class KernelModuleTestCase(TestCase):
 
     def test_stop__module_in_use(self):
         from . import KernelModule, ServiceFailedToStop
-        from logging import debug
+        from logging import getLogger
+        debug = getLogger(__name__).debug
         module_in_use = self._get_module_in_use()
         debug("module is use: %s", module_in_use)
         if module_in_use is None:

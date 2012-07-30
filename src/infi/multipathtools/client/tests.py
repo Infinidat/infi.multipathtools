@@ -2,7 +2,9 @@
 import unittest
 import mock
 from contextlib import contextmanager
-from logging import debug
+from logging import getLogger
+
+loger = getLogger(__name__)
 
 from ctypes import sizeof, c_size_t
 
