@@ -1,6 +1,9 @@
 
 import unittest
 import mock
+import os
+import socket
+
 from contextlib import contextmanager
 
 from ctypes import sizeof, c_size_t
@@ -173,3 +176,43 @@ class MockUnixDomainSocketTestCase(UnixDomainSocketTestCase):
             socket.return_value.recv.side_effect = timeout
             self.connection.connect()
             self.assertRaises(TimeoutExpired, self.connection.receive, *[1])
+
+    def _get_random_socket_path(self):
+        import string
+        import random
+        N = 10
+        return '/tmp/' + ''.join(random.choice(string.ascii_uppercase + string.digits) for x in range(N))
+
+    def _get_socket_filepath(self):
+        filepath = None
+        while filepath is None or os.path.exists(filepath):
+            filepath = self._get_random_socket_path()
+        return filepath
+
+    def _setup_unix_domain_socket(self):
+        filepath = self._get_socket_filepath()
+        sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        sock.bind(filepath)
+        sock.listen(1)
+        sock.setblocking(0)
+        _ = sock.accept
+        self.addCleanup(lambda: sock.close())
+        return sock, filepath
+
+    def test_receive__no_premature_timeout(self):
+        from . import UnixDomainSocket
+        from ..errors import TimeoutExpired
+        from time import time
+        server_side_socket, socket_filepath = self._setup_unix_domain_socket()
+        self.assertTrue(os.path.exists(socket_filepath))
+        client_side_socket = UnixDomainSocket(address=socket_filepath)
+        client_side_socket.connect()
+        before = time()
+        with self.assertRaises(TimeoutExpired):
+            client_side_socket.receive()
+        after = time()
+        self.assertGreater(after-before, 9)
+
+    def test_repr(self):
+        from . import UnixDomainSocket
+        string = repr(UnixDomainSocket())

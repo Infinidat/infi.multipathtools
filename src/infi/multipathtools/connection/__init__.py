@@ -7,9 +7,12 @@ from os.path import exists, sep, join
 from ctypes import c_size_t, sizeof
 
 DEFAULT_SOCKET = join(sep, 'var', 'run', 'multipathd.sock')
-DEFAULT_TIMEOUT = 3
+DEFAULT_TIMEOUT = 10
 MAX_SIZE = 2 ** 8
 HEADER_SIZE = sizeof(c_size_t)
+
+from logging import getLogger
+logger = getLogger(__name__)
 
 class ClientBaseException(Exception):
     pass
@@ -58,6 +61,7 @@ class UnixDomainSocket(BaseConnection):
         try:
             bytes_sent = self._socket.send(message)
         except timeout:
+            logger.debug("Caught socket timeout: {!r}".format(self._socket.gettimeout()))
             raise chain(TimeoutExpired)
         except error:
             raise chain(ConnectionError)
@@ -79,6 +83,7 @@ class UnixDomainSocket(BaseConnection):
         try:
             return self._receive(expected_length)
         except timeout:
+            logger.debug("Caught socket timeout: {!r}".format(self._socket.gettimeout()))
             raise chain(TimeoutExpired)
         except error:
             raise chain(ConnectionError)
@@ -86,3 +91,11 @@ class UnixDomainSocket(BaseConnection):
     def disconnect(self):
         if self._socket is not None:
             self._socket.close()
+        self._socket = None
+
+    def __repr__(self):
+        try:
+            msg = "<UnixDomainSocket(timeout={}, address={}, socket={})>"
+            return msg.format(self._timeout, self._address, self._socket)
+        except:
+            return super(UnixDomainSocket, self).__repr__()

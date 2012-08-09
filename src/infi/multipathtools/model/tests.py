@@ -1,5 +1,6 @@
 
 from infi import unittest
+import __builtin__
 import mock
 
 #pylint: disable-all
@@ -113,16 +114,18 @@ class ModelTestCase(unittest.TestCase):
         output = MOCK_OUTPUT[index]
         maps_topology = output['show multipaths topology']
         paths_table = output['show paths']
-        devices = get_list_of_multipath_devices_from_multipathd_output(maps_topology, paths_table)
+        with mock.patch.object(__builtin__, "open") as open:
+            devices = get_list_of_multipath_devices_from_multipathd_output(maps_topology, paths_table)
         self.assertEqual(len(devices), 3)
         return devices
 
     def test_example__1(self):
         devices = self._get_devices_from_example_by_index(0)
         actual = devices[0]
-        expected = MultipathDevice('36000402001f45eb566e79f6d00000000',
-                                   '36000402001f45eb566e79f6d00000000',
-                                   '0')
+        with mock.patch.object(__builtin__, "open") as open:
+            expected = MultipathDevice('36000402001f45eb566e79f6d00000000',
+                                       '36000402001f45eb566e79f6d00000000',
+                                       '0')
         expected.path_groups.append(PathGroup('active', '1'))
         expected.path_groups[0].paths.append(Path('sdc', 'sdc', '8:32', 'active', '1', '4:0:0:10'))
         self.assertEqual(actual, expected)
@@ -131,9 +134,10 @@ class ModelTestCase(unittest.TestCase):
         devices = self._get_devices_from_example_by_index(3)
         self.assertEqual(len(devices), 3)
         actual = devices[0]
-        expected = MultipathDevice('35742b0f006800000',
-                                   'mpatha',
-                                   '0')
+        with mock.patch.object(__builtin__, "open") as open:
+            expected = MultipathDevice('35742b0f006800000',
+                                       'mpatha',
+                                       '0')
         expected.path_groups.append(PathGroup('active', '1'))
         expected.path_groups.append(PathGroup('enabled', '1'))
         expected.path_groups[0].paths.append(Path('sdb', 'sdb', '8:16', 'active', '1',
@@ -147,9 +151,10 @@ class ModelTestCase(unittest.TestCase):
         devices = self._get_devices_from_example_by_index(4)
         self.assertEqual(len(devices), 3)
         actual = devices[1]
-        expected = MultipathDevice('36000402001f45eb565889a4b00000000',
-                                   'mpathb',
-                                   '2')
+        with mock.patch.object(__builtin__, "open") as open:
+            expected = MultipathDevice('36000402001f45eb565889a4b00000000',
+                                       'mpathb',
+                                       '2')
         expected.path_groups.append(PathGroup('active', '1'))
         expected.path_groups[0].paths.append(Path('sdd', 'sdd', '8:48', 'active', '1', '2:0:1:0'))
         expected.path_groups[0].paths.append(Path('sdf', 'sdf', '8:80', 'active', '1', '3:0:1:1'))

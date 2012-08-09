@@ -1,6 +1,5 @@
 from logging import getLogger
-log = getLogger()
-debug = log.debug
+logger = getLogger(__name__)
 
 DEV_NONE = 0
 DEV_DEVT = 1
@@ -15,7 +14,7 @@ def bunch_to_multipath_conf(bunch):
     for key, value in self.items():
         if value is None:
             continue
-        debug("%s, %s", key, value)
+        logger.debug("%s, %s", key, value)
         strings.append(' '.join([key, value]))
     return '\n'.join(strings)
 

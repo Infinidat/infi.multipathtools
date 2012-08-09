@@ -13,9 +13,9 @@ class MultipathClient(object):
     """ Client to the multipath-tools daemon
     """
 
-    def __init__(self, connection=UnixDomainSocket()):
+    def __init__(self, connection=None):
         super(MultipathClient, self).__init__() #pragma: no cover
-        self._connection = connection
+        self._connection = connection or UnixDomainSocket()
 
     @contextmanager
     def _with_connection_open(self):

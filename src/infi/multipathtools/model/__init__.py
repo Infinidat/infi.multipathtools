@@ -1,10 +1,9 @@
 
 from bunch import Bunch
-from logging import getLogger
 from re import compile, MULTILINE, DOTALL
 
-log = getLogger()
-debug = log.debug
+from logging import getLogger
+logger = getLogger(__name__)
 
 HCTL = r'\d+:\d+:\d+:\d+'
 DEV = r'\w+'
@@ -25,7 +24,7 @@ def parse_paths_table(paths_table):
     pattern = compile(PATH_PATTERN, MULTILINE | DOTALL)
     matches = []
     for match in pattern.finditer(paths_table):
-        debug("match found: %s", match.groupdict())
+        logger.debug("match found: %s", match.groupdict())
         matches.append(dict((key, value.strip('[]')) for (key, value) in match.groupdict().items()))
     return matches
 
@@ -41,7 +40,7 @@ def parse_multipaths_topology(maps_topology):
     pattern = compile(MULTIPATH_PATTERN, MULTILINE)
     matches = []
     for match in pattern.finditer(maps_topology):
-        debug("multipath found: %s", match.groupdict())
+        logger.debug("multipath found: %s", match.groupdict())
         multipath_dict = dict((key, value.strip(' ()[]') if value is not None else value) \
                               for (key, value) in match.groupdict().items())
         parse_path_groups_in_multipath_dict(multipath_dict)
@@ -60,7 +59,7 @@ def parse_path_groups_in_multipath_dict(multipath_dict):
     pattern = compile(PATH_GROUP_PATTERN, MULTILINE)
     matches = []
     for match in pattern.finditer(multipath_dict['path_groups']):
-        debug("pathgroup found: %s", match.groupdict())
+        logger.debug("pathgroup found: %s", match.groupdict())
         pathgroup_dict = dict((key, value.strip(' ()[]') if value is not None else value) for (key, value) in match.groupdict().items())
         parse_paths_in_pathgroup_dict(pathgroup_dict)
         matches.append(pathgroup_dict)
@@ -71,7 +70,7 @@ def parse_paths_in_pathgroup_dict(pathgroup_dict):
     pattern = compile(PATH_PATTERN, MULTILINE | DOTALL)
     matches = []
     for match in pattern.finditer(pathgroup_dict['paths']):
-        debug("path found: %s", match.groupdict())
+        logger.debug("path found: %s", match.groupdict())
         matches.append(dict((key, value.strip(' []')) for (key, value) in match.groupdict().items()))
     pathgroup_dict['paths'] = matches
 
@@ -87,7 +86,7 @@ def get_list_of_multipath_devices_from_multipathd_output(maps_topology, paths_ta
     paths = parse_paths_table(paths_table)
     paths_by_mjmn = dict_by_attribute('dev_t', paths)
     result = []
-    debug("multipaths = %s", multipaths)
+    logger.debug("multipaths = %s", multipaths)
     for mpath_dict in multipaths:
         multipath = MultipathDevice(mpath_dict['wwid'], mpath_dict['alias'] or mpath_dict['wwid'], mpath_dict['dm'])
         for pathgroup_dict in mpath_dict['path_groups']:
@@ -95,7 +94,7 @@ def get_list_of_multipath_devices_from_multipathd_output(maps_topology, paths_ta
             for path_dict in pathgroup_dict['paths']:
                 mjmn = path_dict['dev_t']
                 if mjmn not in paths_by_mjmn.keys():
-                    log.debug("There is no path for major:minor {}, only for {}".format(mjmn, paths_by_mjmn))
+                    logger.debug("There is no path for major:minor {}, only for {}".format(mjmn, paths_by_mjmn))
                     continue
                 path_info = paths_by_mjmn[mjmn]
                 path = Path(path_info['dev'], path_info['dev'], path_info['dev_t'],
