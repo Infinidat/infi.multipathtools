@@ -7,7 +7,7 @@ from os.path import exists, sep, join
 from ctypes import c_size_t, sizeof
 
 DEFAULT_SOCKET = join(sep, 'var', 'run', 'multipathd.sock')
-DEFAULT_TIMEOUT = 10
+DEFAULT_TIMEOUT = 60
 MAX_SIZE = 2 ** 8
 HEADER_SIZE = sizeof(c_size_t)
 
