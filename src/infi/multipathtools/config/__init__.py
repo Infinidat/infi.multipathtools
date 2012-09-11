@@ -118,7 +118,7 @@ DEVICE_PATTERN = \
     r"^\t*(?P<key>device|multipath) {(?P<value>[^{}]*)}$"
 
 RULELIST_PATTERN = \
-    r"^\t*(?P<key>[A-Za-z0-9_]+) (?P<value>(?:[^{}\n]+)|({[^{}].*}))$"
+    r"^\t*(?P<key>[A-Za-z0-9_]+) (?P<value>(?:[^{}\n]+)|({[^{}].*?}))$"
 
 MULTIPATH_CONF_PATTERN = \
     r"^(?P<name>defaults|blacklist_exceptions|blacklist|devices|multipaths)" + \
