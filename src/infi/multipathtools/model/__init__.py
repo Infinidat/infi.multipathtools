@@ -32,7 +32,7 @@ def parse_multipaths_topology(maps_topology):
     MULTIPATH_PATTERN = r"^" + \
         r"(?:(?P<action>\w+): +|\b|\B)" + \
         r"(?:(?P<alias>[A-Za-z0-9]+) +|\b|\B)" + \
-        r"(?P<wwid>[a-z0-9\(\)]+) *" + \
+        r"(?P<wwid>[A-Za-z0-9_\(\) ]+) *" + \
         r"(?P<dm>dm-\w+) +" \
         r"(?P<vendor>\w+) *,(?P<product>\w+)(?P<rev>.*)\n" + \
         r"(?P<options>.+)\n" + \
