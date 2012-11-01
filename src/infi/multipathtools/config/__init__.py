@@ -1,3 +1,4 @@
+from infi.pyutils.lazy import cached_function
 from logging import getLogger
 logger = getLogger(__name__)
 
@@ -29,34 +30,60 @@ def populate_bunch_from_multipath_conf_string(instance, string):
 
 # taken from multipath-tools/libmultipath/dict.c
 
+def is_parameter_supported_by_libmultipath(keyword):
+    from glob import glob
+    from os import path
+    return any([read_shared_library(shared_library).find(keyword)
+                for shared_library in glob(path.sep + path.join("lib*", "*libmultipath.so*"))])
+
+@cached_function
+def read_shared_library(shared_library):
+    with open(shared_library, "rb") as fd:
+        return fd.read()
+
+@cached_function
+def get_supported_keywords_for_hardware_entry():
+    return [item for item in ['vendor', 'product', 'revision', 'product_blacklist',
+                              'path_grouping_policy', 'getuid_callout', 'path_checker',
+                              'alias_prefix', 'features', 'hardware_handler', 'prio',
+                              'prio_args,' 'failback', 'rr_weight', 'no_path_retry',
+                              'rr_min_io', 'rr_min_io_rq', 'pg_gtimeout', 'flush_on_last_del',
+                              'fast_io_fail_tmo', 'dev_loss_tmo']
+            if is_parameter_supported_by_libmultipath(item)]
+ 
 class HardwareEntry(Bunch):
     def __init__(self, *args, **kwargs): #pylint: disable-msg=W0613
-        for item in ['vendor', 'product', 'revision', 'product_blacklist',
-                     'path_grouping_policy', 'getuid_callout', 'path_checker',
-                     'alias_prefix', 'features', 'hardware_handler', 'prio',
-                     'prio_args,' 'failback', 'rr_weight', 'no_path_retry',
-                     'rr_min_io', 'rr_min_io_rq', 'pg_gtimeout', 'flush_on_last_del',
-                     'fast_io_fail_tmo', 'dev_loss_tmo']:
-            setattr(self, item, None)
+	for item in get_supported_keywords_for_hardware_entry():
+           setattr(self, item, None)
+
+@cached_function
+def get_supported_keywords_for_multipath_entry():
+    return [item for item in ['wwid', 'alias', 'path_grouping_policy', 'path_selector',
+                              'failback', 'rr_weight', 'no_path_retry', 'rr_min_io',
+                              'rr_min_io_rq', 'pg_timeout', 'flush_on_last_del',
+                              'mode', 'uid', 'gid']
+            if is_parameter_supported_by_libmultipath(item)]
 
 class MultipathEntry(Bunch):
     def __init__(self, *args, **kwargs): #pylint: disable-msg=W0613
-        for item in ['wwid', 'alias', 'path_grouping_policy', 'path_selector',
-                     'failback', 'rr_weight', 'no_path_retry', 'rr_min_io',
-                     'rr_min_io_rq', 'pg_timeout', 'flush_on_last_del',
-                     'mode', 'uid', 'gid']:
-            setattr(self, item, None)
+        for item in get_supported_keywords_for_multipath_entry():
+           setattr(self, item, None)
+
+@cached_function
+def get_supported_keywords_for_configuration():
+    return [item for item in ['verbosity', 'polling_interval', 'udev_dir', 'multipath_dir',
+                              'path_selector', 'path_grouping_policy', 'getuid_callout',
+                              'prio', 'prio_args', 'features', 'path_checker', 'alias_prefix',
+                              'failback' , 'rr_min_io', 'rr_min_io_rq', 'max_fds', 'no_path_retry',
+                              'queue_without_daemon', 'checker_timeout', 'pg_timeout',
+                              'flush_on_last_del', 'user_friendly_names', 'mode', 'uid', 'gid',
+                              'fast_io_fail_tmo' , 'dev_loss_tmo']
+            if is_parameter_supported_by_libmultipath(item)]
 
 class ConfigurationAttributes(Bunch):
     def __init__(self, *args, **kwargs): #pylint: disable-msg=W0613
-        for item in ['verbosity', 'polling_interval', 'udev_dir', 'multipath_dir',
-                     'path_selector', 'path_grouping_policy', 'getuid_callout',
-                     'prio', 'prio_args', 'features', 'path_checker', 'alias_prefix',
-                     'failback' , 'rr_min_io', 'rr_min_io_rq', 'max_fds', 'no_path_retry',
-                     'queue_without_daemon', 'checker_timeout', 'pg_timeout',
-                     'flish_on_last_del', 'user_friendly_names', 'mode', 'uid', 'gid',
-                     'fast_io_fail_tmo' , 'dev_loss_tmo']:
-            setattr(self, item, None)
+	for item in get_supported_keywords_for_configuration():
+           setattr(self, item, None)
 
 class RuleList(object):
     """ container for {black,white}list configuration:
