@@ -62,9 +62,9 @@ class UnixDomainSocket(BaseConnection):
             bytes_sent = self._socket.send(message)
         except timeout:
             logger.debug("Caught socket timeout: {!r}".format(self._socket.gettimeout()))
-            raise chain(TimeoutExpired)
+            raise chain(TimeoutExpired("multipathd is not responding"))
         except error:
-            raise chain(ConnectionError)
+            raise chain(ConnectionError("multipathd connection refused"))
 
         if bytes_sent < len(message):
             self.send(message[bytes_sent:])
@@ -84,9 +84,9 @@ class UnixDomainSocket(BaseConnection):
             return self._receive(expected_length)
         except timeout:
             logger.debug("Caught socket timeout: {!r}".format(self._socket.gettimeout()))
-            raise chain(TimeoutExpired)
+            raise chain(TimeoutExpired("multipathd is not responding"))
         except error:
-            raise chain(ConnectionError)
+            raise chain(ConnectionError("multipathd connection refused"))
 
     def disconnect(self):
         if self._socket is not None:
