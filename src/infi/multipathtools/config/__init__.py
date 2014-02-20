@@ -7,10 +7,10 @@ DEV_DEVT = 1
 DEV_DEVNODE = 2
 DEV_DEVMAP = 3
 
-from bunch import Bunch
+from munch import Munch
 
-def bunch_to_multipath_conf(bunch):
-    self = bunch
+def munch_to_multipath_conf(munch):
+    self = munch
     strings = []
     for key, value in self.items():
         if value is None:
@@ -19,7 +19,7 @@ def bunch_to_multipath_conf(bunch):
         strings.append(' '.join([key, value]))
     return '\n'.join(strings)
 
-def populate_bunch_from_multipath_conf_string(instance, string):
+def populate_munch_from_multipath_conf_string(instance, string):
     from re import compile, DOTALL, MULTILINE #pylint: disable-msg=W0622
     re_flags = DOTALL | MULTILINE
     key_value_pattern = compile(KEY_VALUE_PATTERN, re_flags)
@@ -50,8 +50,8 @@ def get_supported_keywords_for_hardware_entry():
                               'rr_min_io', 'rr_min_io_rq', 'pg_gtimeout', 'flush_on_last_del',
                               'fast_io_fail_tmo', 'dev_loss_tmo']
             if is_parameter_supported_by_libmultipath(item)]
- 
-class HardwareEntry(Bunch):
+
+class HardwareEntry(Munch):
     def __init__(self, *args, **kwargs): #pylint: disable-msg=W0613
 	for item in get_supported_keywords_for_hardware_entry():
            setattr(self, item, None)
@@ -64,7 +64,7 @@ def get_supported_keywords_for_multipath_entry():
                               'mode', 'uid', 'gid']
             if is_parameter_supported_by_libmultipath(item)]
 
-class MultipathEntry(Bunch):
+class MultipathEntry(Munch):
     def __init__(self, *args, **kwargs): #pylint: disable-msg=W0613
         for item in get_supported_keywords_for_multipath_entry():
            setattr(self, item, None)
@@ -80,18 +80,18 @@ def get_supported_keywords_for_configuration():
                               'fast_io_fail_tmo' , 'dev_loss_tmo']
             if is_parameter_supported_by_libmultipath(item)]
 
-class ConfigurationAttributes(Bunch):
+class ConfigurationAttributes(Munch):
     def __init__(self, *args, **kwargs): #pylint: disable-msg=W0613
 	for item in get_supported_keywords_for_configuration():
            setattr(self, item, None)
 
 class RuleList(object):
     """ container for {black,white}list configuration:
-    
+
     devnode    a list of the the regular experssions
     device     a list of the device declarations
     wwid       a list of the WWIDs being included
-    
+
     """
     def __init__(self):
         super(RuleList, self).__init__()
@@ -105,7 +105,7 @@ class RuleList(object):
             strings.append('devnode %s' % devnode)
         for device in self.device:
             strings.append('device {')
-            strings.extend(['\t%s' % line for line in bunch_to_multipath_conf(device).splitlines()])
+            strings.extend(['\t%s' % line for line in munch_to_multipath_conf(device).splitlines()])
             strings.append('}')
         for wwid in self.wwid:
             strings.append('wwid %s' % wwid)
@@ -127,13 +127,13 @@ class RuleList(object):
                 instance.wwid.append(value)
             elif key == 'device':
                 device = Device()
-                populate_bunch_from_multipath_conf_string(device, value.strip("{}"))
+                populate_munch_from_multipath_conf_string(device, value.strip("{}"))
                 instance.device.append(device)
             else:
                 raise AssertionError("key %s is invalid", key) # pragma: no cover
         return instance
 
-class Device(Bunch):
+class Device(Munch):
     def __init__(self, *args, **kwargs): #pylint: disable-msg=W0613
         for item in ['vendor', 'product']:
             setattr(self, item, None)
@@ -163,21 +163,21 @@ MULTIPATH_CONF_PATTERN = \
 """
 class Configuration(object):
     """ container for multipathd.conf
-    
+
     the pupose of the class (and module) is to hold the configuration of multipathd.conf
-    it provides a bunch-like interface to all the configuration, where the keys are the option names as defined
+    it provides a munch-like interface to all the configuration, where the keys are the option names as defined
     in multipath.conf.annotated.
     all values are stored as strings.
-    
+
     The configuration contains several elements:
-    
+
     devices        a list of devices, the devices {} section of multipath.conf
     multipaths     a list of mulltipath(es), the multipaths section of multipath.conf
     blacklist      the blacklist section of multipath.conf
     whitelist      the blacklist_exceptions section of multipath.conf
-    
+
     This class also provides two-way translation to/from the syntax of multipath.conf.
-    See the help of to_multipathd_conf and from_multipathd_conf 
+    See the help of to_multipathd_conf and from_multipathd_conf
     """
 
     def __init__(self):
@@ -194,7 +194,7 @@ class Configuration(object):
         """
         strings = []
         strings.append('defaults {')
-        strings.extend(['\t%s' % line for line in bunch_to_multipath_conf(self.attributes).splitlines()])
+        strings.extend(['\t%s' % line for line in munch_to_multipath_conf(self.attributes).splitlines()])
         strings.append('}')
         strings.append('blacklist {')
         strings.extend(['\t%s' % line for line in self.blacklist.to_multipathd_conf().splitlines()])
@@ -205,13 +205,13 @@ class Configuration(object):
         strings.append('devices {')
         for device in self.devices:
             strings.append('\tdevice {')
-            strings.extend(['\t\t%s' % line for line in bunch_to_multipath_conf(device).splitlines()])
+            strings.extend(['\t\t%s' % line for line in munch_to_multipath_conf(device).splitlines()])
             strings.append('\t}')
         strings.append('}')
         strings.append('multipaths {')
         for multipath in self.multipaths:
             strings.append('\tmultipath {')
-            strings.extend(['\t\t%s' % line for line in bunch_to_multipath_conf(multipath).splitlines()])
+            strings.extend(['\t\t%s' % line for line in munch_to_multipath_conf(multipath).splitlines()])
             strings.append('\t}')
         strings.append('}')
         return '\n'.join(strings)
@@ -220,7 +220,7 @@ class Configuration(object):
     def from_multipathd_conf(cls, show_config_output):
         """ this class method takes the multipathd configuration, as taken from multipathd -k; show config
         and returns an instance with all the configuration parsed out of the input
-        
+
         this method may fail parsing the configuration if it was read directly from the configuration file,
         since it makes some assumpsions that are always valid when looking at the output of 'show config' command.
         For exmaple:
@@ -237,13 +237,13 @@ class Configuration(object):
             for match in device_pattern.finditer(content):
                 _, value = match.groupdict()['key'], match.groupdict()['value']
                 entry = base_class()
-                populate_bunch_from_multipath_conf_string(entry, value)
+                populate_munch_from_multipath_conf_string(entry, value)
                 list.append(entry)
 
         for section in pattern.finditer(show_config_output):
             name, content = section.groupdict()['name'], section.groupdict()['content']
             if name == 'defaults':
-                populate_bunch_from_multipath_conf_string(instance.attributes, content)
+                populate_munch_from_multipath_conf_string(instance.attributes, content)
             elif name == 'blacklist':
                 instance.blacklist = RuleList.from_multipathd_conf(content)
             elif name == 'blacklist_exceptions':

@@ -1,5 +1,5 @@
 
-from bunch import Bunch
+from munch import Munch
 from re import compile, MULTILINE, DOTALL
 
 from logging import getLogger

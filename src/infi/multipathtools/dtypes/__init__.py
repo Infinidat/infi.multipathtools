@@ -1,7 +1,7 @@
 
-from bunch import Bunch
+from munch import Munch
 
-class MultipathDevice(Bunch):
+class MultipathDevice(Munch):
     def __init__(self, id, device_name, dm_name):
         super(MultipathDevice, self).__init__()
         self.path_groups = []
@@ -10,7 +10,7 @@ class MultipathDevice(Bunch):
         with open("/sys/block/{}/dev".format(dm_name)) as fd:
             self.major_minor = tuple([int(number) for number in fd.read().split(':')])
 
-class PathGroup(Bunch):
+class PathGroup(Munch):
     def __init__(self, state, priority):
         super(PathGroup, self).__init__()
         self.paths = []
@@ -19,7 +19,7 @@ class PathGroup(Bunch):
         # TODO add support for service-time and queue-length that were recently added
         self.load_balancing_policy = 'round-robin'
 
-class Path(Bunch):
+class Path(Munch):
     def __init__(self, id, device_name, major_minor, state, priority, hctl):
         super(Path, self).__init__()
         self.id = id

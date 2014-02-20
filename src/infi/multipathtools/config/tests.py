@@ -113,16 +113,16 @@ class InputTests(TestCase):
             self.assertIn(match.groupdict()['key'], expected_keys)
             self.assertIn(match.groupdict()['value'], expected_values)
 
-    def test_populate_bunch(self):
-        from . import populate_bunch_from_multipath_conf_string
-        from bunch import Bunch
+    def test_populate_munch(self):
+        from . import populate_munch_from_multipath_conf_string
+        from munch import Munch
         string = """
             foo bar
             high lower
             1 0
             """.replace('    ', '\t')
-        instance = Bunch()
-        populate_bunch_from_multipath_conf_string(instance, string)
+        instance = Munch()
+        populate_munch_from_multipath_conf_string(instance, string)
         self.assertEquals(instance.foo, 'bar')
         self.assertEquals(instance.high, 'lower')
         self.assertEquals(instance['1'], '0')
