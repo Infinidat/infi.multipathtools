@@ -40,3 +40,6 @@ buildout.cfg
 
 src/infi/multipathtools/__version__.py
 bootstrap.py
+.cache
+eggs
+parts
