@@ -7,6 +7,7 @@ class MultipathDevice(Munch):
         self.path_groups = []
         self.id = id
         self.device_name = device_name
+        self.dm_name = dm_name
         with open("/sys/block/{}/dev".format(dm_name)) as fd:
             self.major_minor = tuple([int(number) for number in fd.read().split(':')])
 
