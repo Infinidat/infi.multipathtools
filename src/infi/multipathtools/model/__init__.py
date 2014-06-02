@@ -28,10 +28,11 @@ def parse_paths_table(paths_table):
         matches.append(dict((key, value.strip('[]')) for (key, value) in match.groupdict().items()))
     return matches
 
+
 def parse_multipaths_topology(maps_topology):
     MULTIPATH_PATTERN = r"^" + \
         r"(?:(?P<action>\w+): +|\b|\B)" + \
-        r"(?:(?P<alias>[A-Za-z0-9]+) +|\b|\B)" + \
+        r"(?:(?P<alias>[A-Za-z0-9_]+) +|\b|\B)" + \
         r"(?P<wwid>[A-Za-z0-9_\(\) ]+) *" + \
         r"(?P<dm>dm-\w+) +" \
         r"(?P<vendor>\w+) *,(?P<product>\w+)(?P<rev>.*)\n" + \
