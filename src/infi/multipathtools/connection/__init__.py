@@ -3,10 +3,13 @@ from infi.exceptools import chain
 from infi.instruct import Struct
 from infi.instruct import ULInt32, ULInt64
 
-from os.path import exists, sep, join
+from os.path import exists, sep, join, exists
 from ctypes import c_size_t, sizeof
 
 DEFAULT_SOCKET = join(sep, 'var', 'run', 'multipathd.sock')
+if not exists(DEFAULT_SOCKET) and exists("/etc/systemd"):
+    DEFAULT_SOCKET = "\x00/org/kernel/linux/storage/multipathd"
+
 DEFAULT_TIMEOUT = 60
 MAX_SIZE = 2 ** 8
 HEADER_SIZE = sizeof(c_size_t)
