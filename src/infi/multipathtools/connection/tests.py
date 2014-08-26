@@ -3,7 +3,10 @@ import unittest
 import mock
 import os
 
-import socket
+try:
+    from gevent import socket
+except ImportError:
+    import socket
 
 socket_module = socket
 from contextlib import contextmanager

@@ -18,7 +18,10 @@ from logging import getLogger
 logger = getLogger(__name__)
 
 
-import socket
+try:
+    from gevent import socket
+except ImportError:
+    import socket
 
 class ClientBaseException(Exception):
     pass
