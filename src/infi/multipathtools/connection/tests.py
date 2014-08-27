@@ -2,8 +2,13 @@
 import unittest
 import mock
 import os
-import socket
 
+try:
+    from gevent import socket
+except ImportError:
+    import socket
+
+socket_module = socket
 from contextlib import contextmanager
 
 from ctypes import sizeof, c_size_t
@@ -68,26 +73,24 @@ class MockUnixDomainSocketTestCase(UnixDomainSocketTestCase):
 
     @contextmanager
     def mock_socket(self):
-        with mock.patch("socket.socket") as socket:
+        with mock.patch("infi.multipathtools.connection.socket.socket") as socket:
             socket.return_value = mock.Mock()
             socket.return_value.send.side_effect = send_mock
             yield socket
 
     def test_connect(self):
-        from socket import AF_UNIX, SOCK_STREAM
         with self.mock_socket() as socket:
             super(MockUnixDomainSocketTestCase, self).test_connect()
         self.assertTrue(socket.called)
         self.assertEquals(socket.call_count, 1)
-        self.assertEquals(socket.call_args[0], (AF_UNIX, SOCK_STREAM))
+        self.assertEquals(socket.call_args[0], (socket_module.AF_UNIX, socket_module.SOCK_STREAM))
 
     def test_connect_and_disconnect(self):
-        from socket import AF_UNIX, SOCK_STREAM
         with self.mock_socket() as socket:
             super(MockUnixDomainSocketTestCase, self).test_connect_and_disconnect()
         self.assertTrue(socket.called)
         self.assertEquals(socket.call_count, 1)
-        self.assertEquals(socket.call_args[0], (AF_UNIX, SOCK_STREAM))
+        self.assertEquals(socket.call_args[0], (socket_module.AF_UNIX, socket_module.SOCK_STREAM))
         self.assertEquals(socket.return_value.close.call_count, 1)
 
     def test_send_and_receive(self):
@@ -192,7 +195,7 @@ class MockUnixDomainSocketTestCase(UnixDomainSocketTestCase):
 
     def _setup_unix_domain_socket(self):
         filepath = self._get_socket_filepath()
-        sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        sock = socket.socket(socket_module.AF_UNIX, socket_module.SOCK_STREAM)
         sock.bind(filepath)
         sock.listen(1)
         sock.setblocking(0)
@@ -206,13 +209,13 @@ class MockUnixDomainSocketTestCase(UnixDomainSocketTestCase):
         from time import time
         server_side_socket, socket_filepath = self._setup_unix_domain_socket()
         self.assertTrue(os.path.exists(socket_filepath))
-        client_side_socket = UnixDomainSocket(address=socket_filepath)
+        client_side_socket = UnixDomainSocket(address=socket_filepath, timeout=5)
         client_side_socket.connect()
         before = time()
         with self.assertRaises(TimeoutExpired):
             client_side_socket.receive()
         after = time()
-        self.assertGreater(after-before, 9)
+        self.assertGreater(after-before, 3)
 
     def test_repr(self):
         from . import UnixDomainSocket

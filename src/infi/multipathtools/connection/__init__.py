@@ -17,6 +17,12 @@ HEADER_SIZE = sizeof(c_size_t)
 from logging import getLogger
 logger = getLogger(__name__)
 
+
+try:
+    from gevent import socket
+except ImportError:
+    import socket
+
 class ClientBaseException(Exception):
     pass
 
@@ -49,25 +55,24 @@ class UnixDomainSocket(BaseConnection):
         self._socket = None
 
     def connect(self):
-        import socket
         try:
             socket_object = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
             socket_object.connect(self._address)
             socket_object.settimeout(self._timeout)
-        except:
-            raise chain(ConnectionError)
+        except socket.error, error:
+            raise chain(ConnectionError("failed to connect to multipathd socket: {}".format(error.strerror)))
+        except Exception, error:
+            raise chain(ConnectionError("failed to connect to multipathd socket: {}".format(error)))
         self._socket = socket_object
 
     def send(self, message):
-        from socket import timeout, error
-
         try:
             bytes_sent = self._socket.send(message)
-        except timeout:
+        except socket.timeout:
             logger.debug("Caught socket timeout: {!r}".format(self._socket.gettimeout()))
             raise chain(TimeoutExpired("multipathd is not responding"))
-        except error:
-            raise chain(ConnectionError("multipathd connection refused"))
+        except socket.error, error:
+            raise chain(ConnectionError("multipathd socket error: {}".format(error.strerror)))
 
         if bytes_sent < len(message):
             self.send(message[bytes_sent:])
@@ -82,14 +87,13 @@ class UnixDomainSocket(BaseConnection):
         return received_string
 
     def receive(self, expected_length=MAX_SIZE):
-        from socket import timeout, error
         try:
             return self._receive(expected_length)
-        except timeout:
+        except socket.timeout:
             logger.debug("Caught socket timeout: {!r}".format(self._socket.gettimeout()))
             raise chain(TimeoutExpired("multipathd is not responding"))
-        except error:
-            raise chain(ConnectionError("multipathd connection refused"))
+        except socket.error, error:
+            raise chain(ConnectionError("multipathd connection error: {}".format(error.strerror)))
 
     def disconnect(self):
         if self._socket is not None:
