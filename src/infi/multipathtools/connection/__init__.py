@@ -7,7 +7,7 @@ from os.path import exists, sep, join, exists
 from ctypes import c_size_t, sizeof
 
 DEFAULT_SOCKET = join(sep, 'var', 'run', 'multipathd.sock')
-if not exists(DEFAULT_SOCKET) and exists("/etc/systemd"):
+if not exists(DEFAULT_SOCKET):
     DEFAULT_SOCKET = "\x00/org/kernel/linux/storage/multipathd"
 
 DEFAULT_TIMEOUT = 60
