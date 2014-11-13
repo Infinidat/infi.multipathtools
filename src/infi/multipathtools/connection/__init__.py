@@ -6,9 +6,8 @@ from infi.instruct import ULInt32, ULInt64
 from os.path import exists, sep, join, exists
 from ctypes import c_size_t, sizeof
 
-DEFAULT_SOCKET = join(sep, 'var', 'run', 'multipathd.sock')
-if not exists(DEFAULT_SOCKET) and exists("/etc/systemd"):
-    DEFAULT_SOCKET = "\x00/org/kernel/linux/storage/multipathd"
+DEFAULT_PATHNAME_SOCKET = join(sep, 'var', 'run', 'multipathd.sock')
+DEFAULT_ABSTRACT_SOCKET = "\x00/org/kernel/linux/storage/multipathd"
 
 DEFAULT_TIMEOUT = 60
 MAX_SIZE = 2 ** 8
@@ -48,10 +47,12 @@ class BaseConnection(object):
         raise NotImplementedError #pragma: no cover
 
 class UnixDomainSocket(BaseConnection):
-    def __init__(self, timeout=DEFAULT_TIMEOUT, address=DEFAULT_SOCKET):
+    def __init__(self, timeout=DEFAULT_TIMEOUT, address=None):
         super(UnixDomainSocket, self).__init__() #pragma: no cover
         self._timeout = timeout
-        self._address = address
+        self._address = address if address is not None else \
+                        DEFAULT_PATHNAME_SOCKET if exists(DEFAULT_PATHNAME_SOCKET) else \
+                        DEFAULT_ABSTRACT_SOCKET
         self._socket = None
 
     def connect(self):

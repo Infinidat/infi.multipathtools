@@ -91,6 +91,7 @@ class RuleList(object):
     devnode    a list of the the regular experssions
     device     a list of the device declarations
     wwid       a list of the WWIDs being included
+    property   a list of the properties included
 
     """
     def __init__(self):
@@ -98,6 +99,7 @@ class RuleList(object):
         self.device = []
         self.devnode = []
         self.wwid = []
+        self.property = []
 
     def to_multipathd_conf(self):
         strings = []
@@ -109,6 +111,8 @@ class RuleList(object):
             strings.append('}')
         for wwid in self.wwid:
             strings.append('wwid %s' % wwid)
+        if self.property:
+            strings.append('property "(%s)"' % '|'.join(self.property))
         return '\n'.join(strings)
 
     @classmethod
@@ -129,6 +133,8 @@ class RuleList(object):
                 device = Device()
                 populate_munch_from_multipath_conf_string(device, value.strip("{}"))
                 instance.device.append(device)
+            elif key == 'property':
+                instance.property.extend(value.strip('"()"').split("|"))
             else:
                 raise AssertionError("key %s is invalid", key) # pragma: no cover
         return instance
