@@ -60,9 +60,9 @@ class UnixDomainSocket(BaseConnection):
             socket_object = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
             socket_object.connect(self._address)
             socket_object.settimeout(self._timeout)
-        except socket.error, error:
+        except socket.error as error:
             raise chain(ConnectionError("failed to connect to multipathd socket: {}".format(error.strerror)))
-        except Exception, error:
+        except Exception as error:
             raise chain(ConnectionError("failed to connect to multipathd socket: {}".format(error)))
         self._socket = socket_object
 
@@ -72,7 +72,7 @@ class UnixDomainSocket(BaseConnection):
         except socket.timeout:
             logger.debug("Caught socket timeout: {!r}".format(self._socket.gettimeout()))
             raise chain(TimeoutExpired("multipathd is not responding"))
-        except socket.error, error:
+        except socket.error as error:
             raise chain(ConnectionError("multipathd socket error: {}".format(error.strerror)))
 
         if bytes_sent < len(message):
@@ -93,7 +93,7 @@ class UnixDomainSocket(BaseConnection):
         except socket.timeout:
             logger.debug("Caught socket timeout: {!r}".format(self._socket.gettimeout()))
             raise chain(TimeoutExpired("multipathd is not responding"))
-        except socket.error, error:
+        except socket.error as error:
             raise chain(ConnectionError("multipathd connection error: {}".format(error.strerror)))
 
     def disconnect(self):
