@@ -20,8 +20,12 @@ MOCK_OUTPUT = [
                 },
                {'show multipaths topology': "mpatha (35742b0f006800000) dm-0 INFINID,Infinidat A01\nsize=10G features='0' hwhandler='0' wp=rw\n|-+- policy='round-robin 0' prio=1 status=active\n| `- 3:0:0:1 sdb 8:16 active ready running\n`-+- policy='round-robin 0' prio=1 status=enabled\n  `- 2:0:0:1 sdc 8:32 active ready running\nmpathb (36000402001f45eb565889a4b00000000) dm-2 NEXSAN,SATABoy2\nsize=47G features='0' hwhandler='0' wp=rw\n`-+- policy='round-robin 0' prio=1 status=active\n  |- 2:0:1:0 sdd 8:48 active ready running\n  `- 3:0:1:1 sdf 8:80 active ready running\nmpathc (36000402001f45eb565a24ae100000000) dm-3 NEXSAN,SATABoy2\nsize=466G features='0' hwhandler='0' wp=rw\n`-+- policy='round-robin 0' prio=1 status=active\n  `- 3:0:1:0 sde 8:64 active ready running",
                 'show paths': 'hcil    dev dev_t pri dm_st  chk_st dev_st  next_check      \n4:0:0:0 sda 8:0   1   undef  ready  running orphan          \n3:0:0:1 sdb 8:16  1   active ready  running XXXXXXXX.. 16/20\n2:0:0:1 sdc 8:32  1   active ready  running XXXXXXX... 15/20\n2:0:1:0 sdd 8:48  1   active ready  running XXXX...... 9/20 \n3:0:1:0 sde 8:64  1   active ready  running XXXXXXXXXX 20/20\n3:0:1:1 sdf 8:80  1   active ready  running XXXXX..... 10/20'
-                }
+                },
+               {'show multipaths topology': "mpaths (36742b0f0000004450000000000058bf2) dm-1 NFINIDAT,InfiniBox\nsize=954M features='0' hwhandler='0' wp=rw\n`-+- policy='round-robin 0' prio=50 status=active\n  |- 0:0:0:2  sdg 8:96  active ready       running\n  |- 0:0:1:2  sdh 8:112 active i/o pending running\n  |- 0:0:11:2 sdi 8:128 active i/o pending running\n  |- 0:0:21:2 sdj 8:144 active ready       running\n  `- 0:0:22:2 sdk 8:160 active ready       running",
+                'show paths': 'hcil     dev dev_t pri dm_st  chk_st      dev_st  next_check\n0:0:0:1  sdb 8:16  50  active i/o pending running XXXXXXXXX. 9/10\n0:0:1:1  sdc 8:32  50  active ready       running XX........ 1/5\n0:0:11:1 sdd 8:48  50  active ready       running XXXXXXXXXX 10/10'
+               }
                ]
+
 
 from . import parse_paths_table, parse_multipaths_topology, strip_ansi_colors
 from . import get_list_of_multipath_devices_from_multipathd_output
@@ -76,6 +80,12 @@ class PathTableTestCase(unittest.TestCase):
         matches = [match for match in parse_paths_table(subject)]
         self.assertEqual(len(matches), 6)
 
+    def test_parser__6(self):
+        subject = MOCK_OUTPUT[5]['show paths']
+        matches = [match for match in parse_paths_table(subject)]
+        self.assertEqual(len(matches), 3)
+
+
 class MultipathsTopologyTestCase(unittest.TestCase):
     def _validate_example(self, matches):
         self.assertEqual(len(matches), 3)
@@ -108,6 +118,12 @@ class MultipathsTopologyTestCase(unittest.TestCase):
         subject = MOCK_OUTPUT[4]['show multipaths topology']
         matches = [match for match in parse_multipaths_topology(subject)]
         self.assertEqual(len(matches), 3)
+
+    def test_parser__6(self):
+        subject = MOCK_OUTPUT[5]['show multipaths topology']
+        matches = [match for match in parse_multipaths_topology(subject)]
+        self.assertEqual(len(matches), 1)
+        self.assertEquals(len(matches[0]['path_groups'][0]['paths']), 5)
 
 class ModelTestCase(unittest.TestCase):
     def _get_devices_from_example_by_index(self, index):
