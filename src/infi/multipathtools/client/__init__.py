@@ -51,7 +51,10 @@ class MultipathClient(object):
             stream = self._connection.receive(MessageLength.min_max_sizeof().max)
             expected_length = self._get_expected_message_size_from_string(stream)
             response = self._connection.receive(expected_length)
-            return strip_ansi_colors(response.strip('\x00\n'))
+            stripped_response = strip_ansi_colors(response.strip('\x00\n'))
+            if stripped_response == 'timeout':
+                return self._send_and_receive(message.rstrip('\n'))
+            return stripped_response
 
     def rescan(self):
         result = self._send_and_receive("reconfigure")
