@@ -8,9 +8,10 @@ logger = getLogger(__name__)
 HCTL = r'\d+:\d+:\d+:\d+'
 DEV = r'\w+'
 DEV_T = r'\d+:\d+'
-PRI = r'\d+'
-DM_ST = r'(?:\[\w+\])|(?:\w+)'
-CHK_ST = DM_ST
+PRI = r'[-]?\d+'
+DM_ST = '(?:active|failed|undef|\[active\]|\[failed\]|\[undef\])'
+CHK_ST = '(?:ready|faulty|shaky|ghost|i/o pending|i/o timeout|undef|\[ready\]|\[faulty\]|\[shaky\]|\[ghost\]|i/o \[pending\]|i/o \[timeout\]|\[undef\])'
+DEV_ST = r'(?:\b|\B|\w+ +|running|offline|\[running\]|\[offline\])'
 NEXT_CHECK = '(?:[X\. /0-9]+)|orphan *|\[orphan\] *'
 
 
@@ -18,8 +19,7 @@ def parse_paths_table(paths_table):
     PATH_PATTERN = r"^" + \
             ("(?P<hctl>%s) +(?P<dev>%s) +" % (HCTL, DEV)) + \
             (r"(?P<dev_t>%s) +(?P<pri>%s) +" % (DEV_T, PRI)) + \
-            (r"(?P<dm_st>%s) *(?P<chk_st>%s) +" % (DM_ST, CHK_ST)) + \
-             r"(?:\b|\B|\w+ +)" + \
+            (r"(?P<dm_st>%s) *(?P<chk_st>%s) +(?P<dev_st>%s) ?" % (DM_ST, CHK_ST, DEV_ST)) + \
             (r"(?P<next_check>%s)$" % (NEXT_CHECK,))
     pattern = compile(PATH_PATTERN, MULTILINE | DOTALL)
     matches = []
