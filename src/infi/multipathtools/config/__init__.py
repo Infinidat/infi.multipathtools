@@ -220,6 +220,7 @@ class Configuration(object):
             strings.extend(['\t\t%s' % line for line in munch_to_multipath_conf(multipath).splitlines()])
             strings.append('\t}')
         strings.append('}')
+        strings.append('') # add \n at the end
         return '\n'.join(strings)
 
     @classmethod
