@@ -15,7 +15,7 @@ devices {
 }
 multipaths {
 }
-""".strip('\n')
+""".lstrip('\n')
 
 EMPTY_CONFIGURATION__EMPTY_CHILDREN = """
 defaults {
@@ -36,7 +36,7 @@ multipaths {
     multipath {
     }
 }
-""".strip('\n').replace('    ', '\t')
+""".lstrip('\n').replace('    ', '\t')
 
 KEY_VALUE_ITEMS = """
 a 1
