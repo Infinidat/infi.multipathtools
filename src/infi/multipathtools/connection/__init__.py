@@ -1,7 +1,7 @@
 
 from infi.exceptools import chain
 from infi.instruct import Struct
-from infi.instruct import ULInt32, ULInt64
+from infi.instruct import UNInt32, UNInt64
 
 from os.path import exists, sep, join, exists
 from ctypes import c_size_t, sizeof
@@ -28,7 +28,7 @@ class ClientBaseException(Exception):
 from ..errors import ConnectionError, TimeoutExpired
 
 class MessageLength(Struct):
-    _fields_ = [(ULInt64 if HEADER_SIZE == 8 else ULInt32)("length"), ]
+    _fields_ = [(UNInt64 if HEADER_SIZE == 8 else UNInt32)("length"), ]
 
 class BaseConnection(object):
     def __init__(self):
