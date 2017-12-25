@@ -1,6 +1,7 @@
 
 #pylint: disable-msg=E1101
 
+import time
 from os.path import sep, join
 from contextlib import contextmanager
 from ..errors import ConnectionError
@@ -53,6 +54,7 @@ class MultipathClient(object):
             response = self._connection.receive(expected_length)
             stripped_response = strip_ansi_colors(response.strip('\x00\n'))
             if stripped_response == 'timeout':
+                time.sleep(1)
                 return self._send_and_receive(message.rstrip('\n'))
             return stripped_response
 
