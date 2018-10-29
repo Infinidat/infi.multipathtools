@@ -15,10 +15,10 @@ from ctypes import sizeof, c_size_t
 
 #pylint: disable-all
 
-TEST_MESSAGE_TO_SEND = 'reconfigure'
-TEST_MESSAGE_SIZE_TO_SEND = '\x0b' + '\x00' * (sizeof(c_size_t) - 1)
-TEST_MESSAGE_SIZE_TO_RECEIVE = '\x04' + '\x00' * (sizeof(c_size_t) - 1)
-TEST_MESSAGE_TO_RECEIVE = 'ok\n\x00'
+TEST_MESSAGE_TO_SEND = b'reconfigure'
+TEST_MESSAGE_SIZE_TO_SEND = b'\x0b' + b'\x00' * (sizeof(c_size_t) - 1)
+TEST_MESSAGE_SIZE_TO_RECEIVE = b'\x04' + b'\x00' * (sizeof(c_size_t) - 1)
+TEST_MESSAGE_TO_RECEIVE = b'ok\n\x00'
 
 class ConnectionTestCase(unittest.TestCase):
     def _get_connection_object(self):

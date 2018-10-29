@@ -79,7 +79,7 @@ class UnixDomainSocket(BaseConnection):
             self.send(message[bytes_sent:])
 
     def _receive(self, expected_length=MAX_SIZE):
-        received_string = ''
+        received_string = b''
         remaining_length = expected_length
         while remaining_length > 0:
             unit_length = MAX_SIZE if remaining_length > MAX_SIZE else remaining_length

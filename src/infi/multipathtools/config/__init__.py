@@ -33,7 +33,7 @@ def populate_munch_from_multipath_conf_string(instance, string):
 def is_parameter_supported_by_libmultipath(keyword):
     from glob import glob
     from os import path
-    return any([read_shared_library(shared_library).find(keyword)
+    return any([read_shared_library(shared_library).find(keyword.encode("ascii"))
                 for shared_library in glob(path.sep + path.join("lib*", "*libmultipath.so*"))])
 
 @cached_function
