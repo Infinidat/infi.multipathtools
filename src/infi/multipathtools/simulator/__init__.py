@@ -1,4 +1,4 @@
-
+from __future__ import print_function
 from ..connection import BaseConnection
 from ..connection import MessageLength
 from infi.exceptools import chain
@@ -60,11 +60,11 @@ class Simulator(object):
         from ..model import tests
         from ..model import get_list_of_multipath_devices_from_multipathd_output
         from mock import patch
-        import __builtin__
+        from six.moves import builtins
         output = tests.MOCK_OUTPUT[-1]
         maps_topology = output['show multipaths topology']
         paths_table = output['show paths']
-        with patch.object(__builtin__, "open"):
+        with patch.object(builtins, "open"):
             self._devices = get_list_of_multipath_devices_from_multipathd_output(maps_topology, paths_table)
 
     def _write_sample_config_if_empty(self):
@@ -87,14 +87,14 @@ class Simulator(object):
             for pathgroup in device.path_groups:
                 for path in pathgroup.paths:
                     if path.id == path_id:
-                        print 'changing state of %s from %s' % (path_id, path.state)
+                        print('changing state of %s from %s' % (path_id, path.state))
                         path.state = 'failed' if path.state == 'active' else 'active'
 
     def handle_incomming_message(self, message):
         from ..model import tests
         message = message.strip('\n')
         self._handled_messages.append(message)
-        print message
+        print(message)
         if message == 'show config':
             return self._configuration.to_multipathd_conf()
         if message == 'reconfigure':

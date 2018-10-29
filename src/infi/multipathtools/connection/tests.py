@@ -38,9 +38,9 @@ class ConnectionTestCase(unittest.TestCase):
         self.connection.connect()
         self.connection.send(TEST_MESSAGE_SIZE_TO_SEND)
         self.connection.send(TEST_MESSAGE_TO_SEND)
-        self.assertEquals(self.connection.receive(len(TEST_MESSAGE_SIZE_TO_RECEIVE)),
+        self.assertEqual(self.connection.receive(len(TEST_MESSAGE_SIZE_TO_RECEIVE)),
                           TEST_MESSAGE_SIZE_TO_RECEIVE)
-        self.assertEquals(self.connection.receive(len(TEST_MESSAGE_TO_RECEIVE)),
+        self.assertEqual(self.connection.receive(len(TEST_MESSAGE_TO_RECEIVE)),
                           TEST_MESSAGE_TO_RECEIVE)
         self.connection.disconnect()
 
@@ -82,23 +82,23 @@ class MockUnixDomainSocketTestCase(UnixDomainSocketTestCase):
         with self.mock_socket() as socket:
             super(MockUnixDomainSocketTestCase, self).test_connect()
         self.assertTrue(socket.called)
-        self.assertEquals(socket.call_count, 1)
-        self.assertEquals(socket.call_args[0], (socket_module.AF_UNIX, socket_module.SOCK_STREAM))
+        self.assertEqual(socket.call_count, 1)
+        self.assertEqual(socket.call_args[0], (socket_module.AF_UNIX, socket_module.SOCK_STREAM))
 
     def test_connect_and_disconnect(self):
         with self.mock_socket() as socket:
             super(MockUnixDomainSocketTestCase, self).test_connect_and_disconnect()
         self.assertTrue(socket.called)
-        self.assertEquals(socket.call_count, 1)
-        self.assertEquals(socket.call_args[0], (socket_module.AF_UNIX, socket_module.SOCK_STREAM))
-        self.assertEquals(socket.return_value.close.call_count, 1)
+        self.assertEqual(socket.call_count, 1)
+        self.assertEqual(socket.call_args[0], (socket_module.AF_UNIX, socket_module.SOCK_STREAM))
+        self.assertEqual(socket.return_value.close.call_count, 1)
 
     def test_send_and_receive(self):
         with self.mock_socket() as socket:
             _recv_mock = recv_mock([TEST_MESSAGE_TO_RECEIVE, TEST_MESSAGE_SIZE_TO_RECEIVE])
             socket.return_value.recv.side_effect = _recv_mock
             super(MockUnixDomainSocketTestCase, self).test_send_and_receive()
-        self.assertEquals(socket.return_value.send.call_count, 2)
+        self.assertEqual(socket.return_value.send.call_count, 2)
 
     def _test_send_and_receive_long_messages(self):
         from . import MessageLength
@@ -108,7 +108,7 @@ class MockUnixDomainSocketTestCase(UnixDomainSocketTestCase):
         instance.length = len(message_to_send)
         self.connection.send(MessageLength.write_to_string(instance))
         self.connection.send(message_to_send)
-        self.assertEquals(self.connection.receive(2048), 'a' * 2048)
+        self.assertEqual(self.connection.receive(2048), 'a' * 2048)
         self.connection.disconnect()
 
     def test_send_and_receive_long_messages(self):
@@ -125,8 +125,8 @@ class MockUnixDomainSocketTestCase(UnixDomainSocketTestCase):
             socket.return_value.send.side_effect = send_mock
             socket.return_value.recv.side_effect = recv_mock
             self._test_send_and_receive_long_messages()
-        self.assertEquals(socket.return_value.send.call_count, 18)
-        self.assertEquals(socket.return_value.recv.call_count, 23)
+        self.assertEqual(socket.return_value.send.call_count, 18)
+        self.assertEqual(socket.return_value.recv.call_count, 23)
 
     def test_connect__init_raises_exception(self):
         from socket import error

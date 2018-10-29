@@ -53,7 +53,7 @@ def get_supported_keywords_for_hardware_entry():
 
 class HardwareEntry(Munch):
     def __init__(self, *args, **kwargs): #pylint: disable-msg=W0613
-	for item in get_supported_keywords_for_hardware_entry():
+        for item in get_supported_keywords_for_hardware_entry():
            setattr(self, item, None)
 
 @cached_function
@@ -82,7 +82,7 @@ def get_supported_keywords_for_configuration():
 
 class ConfigurationAttributes(Munch):
     def __init__(self, *args, **kwargs): #pylint: disable-msg=W0613
-	for item in get_supported_keywords_for_configuration():
+        for item in get_supported_keywords_for_configuration():
            setattr(self, item, None)
 
 class RuleList(object):

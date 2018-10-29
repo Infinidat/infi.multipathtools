@@ -4,8 +4,9 @@
 import unittest
 import mock
 
-from contextlib import contextmanager, nested
+from contextlib import contextmanager
 from time import sleep
+from six.moves import builtins
 from . import EntryPoint
 
 class MockEntryPoint(EntryPoint):
@@ -224,17 +225,16 @@ class MockInitServiceTestCase(InitServiceTestCase):
 
     @contextmanager
     def mock_open(self):
-        with mock.patch("__builtin__.open") as _open:
-            _open.return_value = mock.MagicMock(file)
+        with mock.patch.object(builtins, "open") as _open:
+            _open.return_value = mock.MagicMock()
             _open.return_value.__enter__.return_value.read.return_value = '20\n'
             yield _open
 
     def test_get_list_of_running_processes(self):
         from os.path import join, sep
-        with nested(mock.patch("os.listdir"),
-                    mock.patch("os.readlink"),
-                    self.mock_exists()) \
-                    as (listdir, readlink, _):
+        with mock.patch("os.listdir") as listdir, \
+             mock.patch("os.readlink") as readlink, \
+             self.mock_exists():
             listdir.return_value = ['10', 'a', '20', 'b', '30', 'c']
             readlink.return_value = join(sep, 'sbin', 'foo')
             InitServiceTestCase.test_get_list_of_running_processes(self)
@@ -245,30 +245,27 @@ class MockInitServiceTestCase(InitServiceTestCase):
             InitServiceTestCase.test_is_installed(self)
 
     def test_is_running(self):
-        with nested(mock.patch("os.listdir"),
-                    mock.patch("os.path.exists"),
-                    self.mock_open()) \
-                    as (listdir, exists, _):
+        with mock.patch("os.listdir") as listdir, \
+             mock.patch("os.path.exists") as exists, \
+             self.mock_open():
             listdir.return_value = ['10', 'a', '20', 'b', '30', 'c']
             exists.return_value = True
             InitServiceTestCase.test_is_running(self)
 
     def test_start(self):
-        with nested(mock.patch("os.listdir"),
-                    mock.patch("os.path.exists"),
-                    self.mock_open(),
-                    self.mock_execute(0)) \
-                    as (listdir, exists, _, _):
+        with mock.patch("os.listdir") as listdir, \
+             mock.patch("os.path.exists") as exists, \
+             self.mock_open(), \
+             self.mock_execute(0):
             listdir.return_value = ['10', 'a', '20', 'b', '30', 'c']
             exists.return_value = True
             InitServiceTestCase.test_start(self)
 
     def test_stop(self):
-        with nested(mock.patch("os.listdir"),
-                    mock.patch("os.path.exists"),
-                    self.mock_open(),
-                    self.mock_execute(0)) \
-                    as (listdir, exists, _, _):
+        with mock.patch("os.listdir") as listdir, \
+             mock.patch("os.path.exists") as exists, \
+             self.mock_open(), \
+             self.mock_execute(0):
             listdir.return_value = ['10', 'a', '20', 'b', '30', 'c']
             exists.return_value = False
             InitServiceTestCase.test_stop(self)
@@ -301,7 +298,7 @@ class MockKernelModuleTestCase(KernelModuleTestCase):
         from os import fdopen
         from tempfile import mkstemp
         fd, filename = mkstemp()
-        fd = fdopen(fd, 'w+b')
+        fd = fdopen(fd, 'w+')
         fd.write('/legen/wait/for/it/dary.ko:\n')
         fd.write('/foo/bar/floppy.ko:\n')
         fd.write('/abra/kadabra.ko:\n')
@@ -320,22 +317,22 @@ class MockKernelModuleTestCase(KernelModuleTestCase):
     @contextmanager
     def mock_open(self):
         fd, _ = self.tempfile
-        with mock.patch("__builtin__.open") as _open:
+        with mock.patch.object(builtins, "open") as _open:
             _open.return_value = mock.MagicMock(fd)
             _open.return_value.__enter__.return_value.read.return_value = fd.read()
             _open.return_value.__enter__.return_value.readlines.return_value = []
             yield _open
 
     def test_is_installed(self):
-        with nested(self.mock_uname(), self.mock_execute(0), self.mock_open()) as (_, _, _open):
+        with self.mock_uname(), self.mock_execute(0), self.mock_open() as _open:
             _open.return_value.__enter__.return_value.readlines.return_value = \
                     ["/a/b/c/floppy.ko: a\n/foo/a.ko:"]
             KernelModuleTestCase.test_is_installed(self)
-            self.assertEquals(_open.return_value.__enter__.return_value.read.call_count, 1)
+            self.assertEqual(_open.return_value.__enter__.return_value.read.call_count, 1)
 
 
     def test_start(self):
-        with nested(self.mock_uname(), self.mock_execute(0), self.mock_open()) as (_, _, _open):
+        with self.mock_uname(), self.mock_execute(0), self.mock_open() as _open:
             return_values = [['ext3 4321 0 - Live 0x00'],
                              ['floppy 1234 0 - Live 0x00', 'ext3 4321 0 - Live 0x00']]
             return_values.reverse()
@@ -347,7 +344,7 @@ class MockKernelModuleTestCase(KernelModuleTestCase):
             KernelModuleTestCase.test_start(self)
 
     def test_stop(self):
-        with nested(self.mock_uname(), self.mock_execute(0), self.mock_open()) as (_, _, _open):
+        with self.mock_uname(), self.mock_execute(0), self.mock_open() as _open:
             return_values = [['ext3 4321 0 - Live 0x00'],
                              ['floppy 1234 0 - Live 0x00', 'ext3 4321 0 - Live 0x00']]
 
@@ -358,11 +355,11 @@ class MockKernelModuleTestCase(KernelModuleTestCase):
             KernelModuleTestCase.test_stop(self)
 
     def test_is_installed__no_such_module(self):
-        with nested(self.mock_uname(), self.mock_execute(0), self.mock_open()):
+        with self.mock_uname(), self.mock_execute(0), self.mock_open():
             KernelModuleTestCase.test_is_installed__no_such_module(self)
 
     def test_stop__module_in_use(self):
-        with nested(self.mock_uname(), self.mock_execute(1), self.mock_open()):
+        with self.mock_uname(), self.mock_execute(1), self.mock_open():
             KernelModuleTestCase.test_stop__module_in_use(self)
 
 class SimpleCompositeServiceTestCase(unittest.TestCase):
@@ -404,6 +401,6 @@ class SimpleCompositeServiceTestCase(unittest.TestCase):
         component = MockEntryPoint()
         self.concrete.add_component(component, 100)
         self.concrete.add_component(component, 100)
-        self.assertIn(component, self.concrete.components.values())
+        self.assertIn(component, list(self.concrete.components.values()))
         self.concrete.remove_component(component)
-        self.assertNotIn(component, self.concrete.components.values())
+        self.assertNotIn(component, list(self.concrete.components.values()))

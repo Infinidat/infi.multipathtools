@@ -65,7 +65,7 @@ def get_kernel_release():
 def get_modules_list():
     from os.path import sep, join
     modules = []
-    with open(join(sep, 'lib', 'modules', get_kernel_release(), 'modules.dep')) as modules_dep:
+    with open(join(sep, 'lib', 'modules', get_kernel_release(), 'modules.dep'), "r") as modules_dep:
         content = modules_dep.read()
         for line in content.splitlines():
             module_path, _ = line.split(':', 1)
@@ -206,12 +206,12 @@ class CompositeEntryPoint(EntryPoint):
         if component not in self.components.values():
             return
 
-        for key, value in self.components.items():
+        for key, value in list(self.components.items()):
             if value is component:
                 self.components.pop(key)
 
     def iter_components_by_order(self, increasing_order=True):
-        keys = self.components.keys()
+        keys = list(self.components.keys())
         keys.sort()
         if not increasing_order:
             keys.reverse()
