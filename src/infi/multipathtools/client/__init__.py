@@ -48,10 +48,10 @@ class MultipathClient(object):
         message = "%s\n" % message
         with self._with_connection_open():
             self._connection.send(self._get_message_size_as_string(message))
-            self._connection.send(message)
+            self._connection.send(message.encode("ascii"))
             stream = self._connection.receive(MessageLength.min_max_sizeof().max)
             expected_length = self._get_expected_message_size_from_string(stream)
-            response = self._connection.receive(expected_length)
+            response = self._connection.receive(expected_length).decode("ascii")
             stripped_response = strip_ansi_colors(response.strip('\x00\n'))
             if stripped_response == 'timeout':
                 time.sleep(1)

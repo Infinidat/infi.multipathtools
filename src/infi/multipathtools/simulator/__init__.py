@@ -1,4 +1,4 @@
-
+from __future__ import print_function
 from ..connection import BaseConnection
 from ..connection import MessageLength
 from infi.exceptools import chain
@@ -60,11 +60,11 @@ class Simulator(object):
         from ..model import tests
         from ..model import get_list_of_multipath_devices_from_multipathd_output
         from mock import patch
-        import __builtin__
+        from six.moves import builtins
         output = tests.MOCK_OUTPUT[-1]
         maps_topology = output['show multipaths topology']
         paths_table = output['show paths']
-        with patch.object(__builtin__, "open"):
+        with patch.object(builtins, "open"):
             self._devices = get_list_of_multipath_devices_from_multipathd_output(maps_topology, paths_table)
 
     def _write_sample_config_if_empty(self):
@@ -87,33 +87,38 @@ class Simulator(object):
             for pathgroup in device.path_groups:
                 for path in pathgroup.paths:
                     if path.id == path_id:
-                        print 'changing state of %s from %s' % (path_id, path.state)
+                        print('changing state of %s from %s' % (path_id, path.state))
                         path.state = 'failed' if path.state == 'active' else 'active'
 
     def handle_incomming_message(self, message):
         from ..model import tests
-        message = message.strip('\n')
+        # the "real" send and receieve functions deal with bytes which are actually ascii messages.
+        # It's easier to deal with strings here by decoding input first and encoding output last
+        message = message.decode("ascii").strip('\n')
         self._handled_messages.append(message)
-        print message
+        print(message)
         if message == 'show config':
-            return self._configuration.to_multipathd_conf()
-        if message == 'reconfigure':
+            response = self._configuration.to_multipathd_conf()
+        elif message == 'reconfigure':
             self._load_configuration()
-            return 'ok\n'
-        if message in ['show multipaths topology', 'show paths']:
+            response = 'ok\n'
+        elif message in ['show multipaths topology', 'show paths']:
             output = tests.MOCK_OUTPUT[-1]
-            return output[message]
-        if message.rsplit(' ', 1)[0] == 'fail path':
+            response = output[message]
+        elif message.rsplit(' ', 1)[0] == 'fail path':
             path_id = message.rsplit(' ', 1)[1]
             self._path_change_state(path_id)
-            return 'ok\n'
-        if message.rsplit(' ', 1)[0] == 'reinstate path':
+            response = 'ok\n'
+        elif message.rsplit(' ', 1)[0] == 'reinstate path':
             path_id = message.rsplit(' ', 1)[1]
             self._path_change_state(path_id)
-            return 'ok\n'
-        if message.rsplit(' ', 1)[0] == '?':
+            response = 'ok\n'
+        elif message.rsplit(' ', 1)[0] == '?':
             from ..model.tests import VERSION_OUTPUT
-            return VERSION_OUTPUT[0]
+            response = VERSION_OUTPUT[0]
+        else:
+            raise AssertionError("Unknown message " + message)
+        return response.encode("ascii")
 
 #TODO load some multipaths to simualtor
 #TODO support fail_path, reinstate_path

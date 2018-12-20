@@ -1,6 +1,6 @@
 
 from infi import unittest
-import __builtin__
+from six.moves import builtins
 import mock
 
 #pylint: disable-all
@@ -36,7 +36,7 @@ class PathTableTestCase(unittest.TestCase):
     def _assert_lists(self, a, b):
         a.sort()
         b.sort()
-        self.assertEquals(a, b)
+        self.assertEqual(a, b)
 
     def _validate_example(self, matches):
         self.assertEqual(len(matches), 4)
@@ -123,14 +123,14 @@ class MultipathsTopologyTestCase(unittest.TestCase):
         subject = MOCK_OUTPUT[5]['show multipaths topology']
         matches = [match for match in parse_multipaths_topology(subject)]
         self.assertEqual(len(matches), 1)
-        self.assertEquals(len(matches[0]['path_groups'][0]['paths']), 5)
+        self.assertEqual(len(matches[0]['path_groups'][0]['paths']), 5)
 
 class ModelTestCase(unittest.TestCase):
     def _get_devices_from_example_by_index(self, index):
         output = MOCK_OUTPUT[index]
         maps_topology = output['show multipaths topology']
         paths_table = output['show paths']
-        with mock.patch.object(__builtin__, "open") as open:
+        with mock.patch.object(builtins, "open") as open:
             devices = get_list_of_multipath_devices_from_multipathd_output(maps_topology, paths_table)
         self.assertEqual(len(devices), 3)
         return devices
@@ -138,7 +138,7 @@ class ModelTestCase(unittest.TestCase):
     def test_example__1(self):
         devices = self._get_devices_from_example_by_index(0)
         actual = devices[0]
-        with mock.patch.object(__builtin__, "open") as open:
+        with mock.patch.object(builtins, "open") as open:
             expected = MultipathDevice('36000402001f45eb566e79f6d00000000',
                                        '36000402001f45eb566e79f6d00000000',
                                        'dm-0')
@@ -150,7 +150,7 @@ class ModelTestCase(unittest.TestCase):
         devices = self._get_devices_from_example_by_index(3)
         self.assertEqual(len(devices), 3)
         actual = devices[0]
-        with mock.patch.object(__builtin__, "open") as open:
+        with mock.patch.object(builtins, "open") as open:
             expected = MultipathDevice('35742b0f006800000',
                                        'mpatha',
                                        'dm-0')
@@ -167,7 +167,7 @@ class ModelTestCase(unittest.TestCase):
         devices = self._get_devices_from_example_by_index(4)
         self.assertEqual(len(devices), 3)
         actual = devices[1]
-        with mock.patch.object(__builtin__, "open") as open:
+        with mock.patch.object(builtins, "open") as open:
             expected = MultipathDevice('36000402001f45eb565889a4b00000000',
                                        'mpathb',
                                        'dm-2')

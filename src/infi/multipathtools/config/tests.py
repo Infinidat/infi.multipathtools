@@ -52,7 +52,7 @@ class OutputTests(TestCase):
     def test_output__empty_configuration(self):
         from . import Configuration
         config = Configuration()
-        self.assertEquals(config.to_multipathd_conf(), EMPTY_CONFIGURATION)
+        self.assertEqual(config.to_multipathd_conf(), EMPTY_CONFIGURATION)
 
     def test_output__empty_configuration__everything_is_none(self):
         from . import Configuration, Device, MultipathEntry, HardwareEntry
@@ -61,7 +61,7 @@ class OutputTests(TestCase):
         config.whitelist.device.append(Device())
         config.multipaths.append(HardwareEntry())
         config.devices.append(MultipathEntry())
-        self.assertEquals(config.to_multipathd_conf(), EMPTY_CONFIGURATION__EMPTY_CHILDREN)
+        self.assertEqual(config.to_multipathd_conf(), EMPTY_CONFIGURATION__EMPTY_CHILDREN)
 
 from re import compile, DOTALL, MULTILINE
 from . import KEY_VALUE_PATTERN, MULTIPATH_CONF_PATTERN
@@ -96,11 +96,11 @@ class InputTests(TestCase):
     def test_regex__key_value_pattern(self):
         pattern = compile(KEY_VALUE_PATTERN, DOTALL | MULTILINE)
         result = pattern.search("key value")
-        self.assertEquals(result.groupdict()['key'], 'key')
-        self.assertEquals(result.groupdict()['value'], 'value')
+        self.assertEqual(result.groupdict()['key'], 'key')
+        self.assertEqual(result.groupdict()['value'], 'value')
         result = pattern.search(r"regex ^this|is|[a][^complicated](regex).*/")
-        self.assertEquals(result.groupdict()['key'], 'regex')
-        self.assertEquals(result.groupdict()['value'], '^this|is|[a][^complicated](regex).*/')
+        self.assertEqual(result.groupdict()['key'], 'regex')
+        self.assertEqual(result.groupdict()['value'], '^this|is|[a][^complicated](regex).*/')
 
     def test_regex__multiple_key_values(self):
         pattern = compile(KEY_VALUE_PATTERN, DOTALL | MULTILINE)
@@ -109,7 +109,7 @@ class InputTests(TestCase):
         expected_keys = ['a', 'b', 'foo']
         expected_values = ['1', '"hello 1"', "legen...|wait.for\wit|[^dary]"]
         for match in iterator:
-            self.assertEquals(len(match.groupdict().keys()), 2)
+            self.assertEqual(len(list(match.groupdict().keys())), 2)
             self.assertIn(match.groupdict()['key'], expected_keys)
             self.assertIn(match.groupdict()['value'], expected_values)
 
@@ -123,9 +123,9 @@ class InputTests(TestCase):
             """.replace('    ', '\t')
         instance = Munch()
         populate_munch_from_multipath_conf_string(instance, string)
-        self.assertEquals(instance.foo, 'bar')
-        self.assertEquals(instance.high, 'lower')
-        self.assertEquals(instance['1'], '0')
+        self.assertEqual(instance.foo, 'bar')
+        self.assertEqual(instance.high, 'lower')
+        self.assertEqual(instance['1'], '0')
 
     def test_rulelist_from_string(self):
         from . import RuleList
@@ -142,10 +142,10 @@ class InputTests(TestCase):
         self.assertEqual(len(instance.device), 1)
         self.assertEqual(len(instance.devnode), 2)
         self.assertEqual(len(instance.wwid), 1)
-        self.assertEquals(instance.device[0].product, 'someProduct')
-        self.assertEquals(instance.device[0].vendor , 'someVendor')
-        self.assertEquals(instance.devnode, ['^something%N', 'else$'])
-        self.assertEquals(instance.wwid, ['010203040506', ])
+        self.assertEqual(instance.device[0].product, 'someProduct')
+        self.assertEqual(instance.device[0].vendor , 'someVendor')
+        self.assertEqual(instance.devnode, ['^something%N', 'else$'])
+        self.assertEqual(instance.wwid, ['010203040506', ])
 
 
     def test_regex__sample_configuration(self):
@@ -174,7 +174,7 @@ class InputTests(TestCase):
         config = Configuration.from_multipathd_conf(sample_config_string)
         self.assertEqual(config.attributes.udev_dir, '/dev')
         self.assertEqual(config.attributes.polling_interval, '10')
-        self.assertEquals(config.attributes.uid, '0')
+        self.assertEqual(config.attributes.uid, '0')
         self.assertEqual(config.blacklist.wwid, ['26353900f02796769'])
         self.assertIn('"^dcssblk[0-9]*"', config.blacklist.devnode)
         self.assertEqual(config.blacklist.device[0].product, "MSA[15]00")

@@ -91,7 +91,7 @@ def get_list_of_multipath_devices_from_multipathd_output(maps_topology, paths_ta
     for mpath_dict in multipaths:
         try:
             multipath = MultipathDevice(mpath_dict['wwid'], mpath_dict['alias'] or mpath_dict['wwid'], mpath_dict['dm'])
-        except IOError, err:
+        except IOError as err:
             logger.error("MultipathDevice disappeared: {}".format(err))
             continue
         for pathgroup_dict in mpath_dict['path_groups']:

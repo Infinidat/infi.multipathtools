@@ -33,7 +33,7 @@ def populate_munch_from_multipath_conf_string(instance, string):
 def is_parameter_supported_by_libmultipath(keyword):
     from glob import glob
     from os import path
-    return any([read_shared_library(shared_library).find(keyword)
+    return any([read_shared_library(shared_library).find(keyword.encode("ascii"))
                 for shared_library in glob(path.sep + path.join("lib*", "*libmultipath.so*"))])
 
 @cached_function
@@ -53,7 +53,7 @@ def get_supported_keywords_for_hardware_entry():
 
 class HardwareEntry(Munch):
     def __init__(self, *args, **kwargs): #pylint: disable-msg=W0613
-	for item in get_supported_keywords_for_hardware_entry():
+        for item in get_supported_keywords_for_hardware_entry():
            setattr(self, item, None)
 
 @cached_function
@@ -82,7 +82,7 @@ def get_supported_keywords_for_configuration():
 
 class ConfigurationAttributes(Munch):
     def __init__(self, *args, **kwargs): #pylint: disable-msg=W0613
-	for item in get_supported_keywords_for_configuration():
+        for item in get_supported_keywords_for_configuration():
            setattr(self, item, None)
 
 class RuleList(object):
