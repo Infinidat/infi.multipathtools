@@ -41,7 +41,10 @@ class MultipathClientTestCase(unittest.TestCase):
 
     def test_get_devices(self):
         from six.moves import builtins
-        with mock.patch.object(builtins, "open"):
+        import infi.os_info
+        with mock.patch.object(builtins, "open"), \
+             mock.patch.object(infi.os_info, "get_platform_string"), \
+             mock.patch.object(infi.os_info, "system_is_rhel_based"):
             devices = self.client.get_list_of_multipath_devices()
 
     def test_disable_and_reinstante_paths(self):
