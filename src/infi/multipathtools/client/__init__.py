@@ -2,9 +2,11 @@
 #pylint: disable-msg=E1101
 
 import time
-from os.path import sep, join
+import subprocess
+from os.path import sep, join, exists
 from contextlib import contextmanager
 from ..errors import ConnectionError
+from ..model import strip_ansi_colors
 
 DEFAULT_CONF_FILE = join(sep, 'etc', 'multipath.conf')
 
@@ -44,7 +46,6 @@ class MultipathClient(object):
         return MessageLength.create_from_string(string).length
 
     def _send_and_receive(self, message):
-        from ..model import strip_ansi_colors
         message = "%s\n" % message
         with self._with_connection_open():
             self._connection.send(self._get_message_size_as_string(message))
@@ -57,6 +58,18 @@ class MultipathClient(object):
                 time.sleep(1)
                 return self._send_and_receive(message.rstrip('\n'))
             return stripped_response
+
+    def _exec(self, args, timeout=120):
+        process = subprocess.Popen(args=args,
+                                   stdout=subprocess.PIPE,
+                                   stderr=subprocess.PIPE,
+                                   universal_newlines=True)
+        stdout, stderr = process.communicate(timeout=timeout)
+        result = process.returncode
+        if result:
+            message = 'command %s failed with code %s (stdout: %s, stderr: %s)' % (args, result, stdout, stderr)
+            raise RuntimeError(message)
+        return strip_ansi_colors(stdout.strip('\x00\n'))
 
     def rescan(self):
         result = self._send_and_receive("reconfigure")
@@ -82,7 +95,14 @@ class MultipathClient(object):
         """ returns a list of mulipath devices and their attributes, as seen from multipathd
         """
         from ..model import get_list_of_multipath_devices_from_multipathd_output
-        maps_topology = self._send_and_receive("show multipaths topology")
+        from infi.os_info import get_platform_string, system_is_rhel_based
+        # Workaround for HPT-3082
+        version = get_platform_string().split("-")[2]
+        multipath = "/usr/sbin/multipath"
+        if system_is_rhel_based() and version == "9" and exists(multipath):
+            maps_topology = self._exec([multipath, "-ll"])
+        else:
+            maps_topology = self._send_and_receive("show multipaths topology")
         paths_table = self._send_and_receive("show paths")
         result = get_list_of_multipath_devices_from_multipathd_output(maps_topology, paths_table)
         return result
